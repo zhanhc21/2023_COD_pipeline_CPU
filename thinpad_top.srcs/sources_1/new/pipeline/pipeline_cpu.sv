@@ -94,9 +94,6 @@ module pipeline(
     logic        mem_wb_rf_wen;
 
     // pipeline controller signals
-    logic [31:0] if_pc;
-    logic        if_pc_mux;
-
     logic [ 4:0] id_rf_raddr_a;
     logic [ 4:0] id_rf_raddr_b;
 
@@ -116,7 +113,9 @@ module pipeline(
     logic [ 4:0] wb_rf_waddr;
     logic        wb_rf_wen;
 
-    logic if_stall;
+    logic if_busy;
+    logic mem_busy;
+
     logic if_flush;
     logic id_stall;
     logic id_flush;
@@ -133,13 +132,13 @@ module pipeline(
         .rst_i(rst_i),
 
         // stall signal and flush signal
+        .busy_i(if_busy),
         .stall_i(if_stall),
         .flush_i(if_flush),
 
         // pc mux signals
         .pc_from_exe_i(exe_if_pc),
-        .pc_i(if_pc),
-        .pc_mux_i(if_pc_mux), // 0: pc+4, 1: exe_pc
+        .pc_mux_i(exe_if_pc_mux), // 0: pc+4, 1: exe_pc
         
         // wishbone signals
         .wb_cyc_o(wbm_cyc_im),
@@ -263,6 +262,7 @@ module pipeline(
         .mem_rf_wen_i(exe_mem_rf_wen),
 
         // stall signal and flush signal
+        .busy_i(mem_busy),
         .stall_i(mem_stall),
         .flush_i(mem_flush),
 
@@ -301,14 +301,6 @@ module pipeline(
         .clk_i(clk_i),
         .rst_i(rst_i),
 
-        // signals from IF stage
-        .if_pc_o(if_pc),
-        .if_pc_sel_o(if_pc_mux),
-
-        // pc signals from EXE stage
-        .exe_if_pc_i(exe_if_pc),
-        .exe_if_pc_sel_i(exe_if_pc_mux),  // 0: pc+4, 1: exe_pc
-
         // signals from ID stage
         .id_rf_raddr_a_i(id_rf_raddr_a),
         .id_rf_raddr_b_i(id_rf_raddr_b),
@@ -331,6 +323,10 @@ module pipeline(
         .wb_rf_wdata_i(wb_rf_wdata),
         .wb_rf_waddr_i(wb_rf_waddr),
         .wb_rf_wen_i(wb_rf_wen),
+        
+        // memory busy signals (IF & MEM)
+        .if_busy_i(if_busy),
+        .mem_busy_i(mem_busy),
 
         // stall and flush signals
         .if_stall_o(if_stall),
