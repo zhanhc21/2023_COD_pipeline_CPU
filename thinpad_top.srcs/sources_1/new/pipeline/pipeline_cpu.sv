@@ -43,18 +43,6 @@ module pipeline(
         .rdata_b(rf_rdata_b_i)
     ); 
 
-    // alu signals
-    logic [31:0] alu_a;
-    logic [31:0] alu_b;
-    logic [ 3:0] alu_op;
-    logic [31:0] alu_result;
-    alu u_alu (
-        .a  (alu_a),
-        .b  (alu_b),
-        .op (alu_op),
-        .result  (alu_result)
-    );
-
     // IF signals
     logic [31:0] if_id_pc;
     logic [31:0] if_id_instr;
@@ -86,6 +74,17 @@ module pipeline(
     logic        exe_mem_rf_wen;
     logic [31:0] exe_if_pc;
     logic        exe_if_pc_mux;
+    logic [31:0] alu_result;
+    logic [31:0] alu_operand_a;
+    logic [31:0] alu_operand_b;
+    logic [ 3:0] alu_op;
+
+    alu u_alu (
+        .a  (alu_operand_a),
+        .b  (alu_operand_b),
+        .op (alu_op),
+        .result (alu_result)
+    );
 
     // MEM signals
     logic [31:0] mem_wb_pc;
@@ -230,6 +229,12 @@ module pipeline(
         .mem_mem_wen_o(exe_mem_mem_wen), // if write DM (0: read DM, 1: write DM)
         .mem_rf_waddr_o(exe_mem_rf_waddr), // WB addr
         .mem_rf_wen_o(exe_mem_rf_wen),  // if write back (WB)
+
+        // signals to alu
+        .alu_result_i (alu_result),
+        .alu_operand_a_o (alu_operand_a),
+        .alu_operand_b_o (alu_operand_b),
+        .alu_op_o (alu_op)
     );
 
     /* ========== MEM stage ========== */

@@ -249,7 +249,6 @@ module thinpad_top (
       .clk_i(sys_clk),
       .rst_i(sys_rst),
 
-      // TODO: 添加�???要的控制信号，例如按键开关？
       
       .dip_sw(dip_sw),
       // wishbone master IM
