@@ -24,6 +24,7 @@ module MEM_Stage (
     input wire        mem_rf_wen_i,
 
     // stall signal and flush signal
+    input wire busy_i,
     input wire stall_i,
     input wire flush_i,
 
