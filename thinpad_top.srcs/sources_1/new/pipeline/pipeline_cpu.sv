@@ -125,6 +125,11 @@ module pipeline(
     logic mem_flush;
     logic wb_stall;
     logic wb_flush;
+    
+    logic [31:0] exe_forward_alu_a;
+    logic [31:0] exe_forward_alu_b;
+    logic exe_forward_alu_a_mux;
+    logic exe_forward_alu_b_mux;
 
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
@@ -339,5 +344,11 @@ module pipeline(
         .exe_flush_o(exe_flush),
         .mem_flush_o(mem_flush),
         .wb_flush_o(wb_flush),
+
+        // data hazard signals (forward unit)
+        .exe_forward_alu_a_o(exe_forward_alu_a),
+        .exe_forward_alu_b_o(exe_forward_alu_b),
+        .exe_forward_alu_a_mux_o(exe_forward_alu_a_mux),
+        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux)
     );
 endmodule

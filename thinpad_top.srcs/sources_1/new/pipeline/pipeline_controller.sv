@@ -39,7 +39,13 @@ module pipeline_controller(
     output reg id_flush_o,
     output reg exe_flush_o,
     output reg mem_flush_o,
-    output reg wb_flush_o
+    output reg wb_flush_o,
+
+    // data hazard signals (forward unit)
+    output reg [31:0] exe_forward_alu_a_o,
+    output reg [31:0] exe_forward_alu_b_o,
+    output reg exe_forward_alu_a_sel_o,
+    output reg exe_forward_alu_b_sel_o
 );
 
     logic m_busy;  // if memory busy (IF/MEM)
@@ -47,7 +53,7 @@ module pipeline_controller(
     assign m_busy = if_busy_i | mem_busy_i;
 
 
-    /* ========== memory hazard ========== */
+    // structure(memory) hazard
     always_comb begin
         if_stall_o = 1'b0;
         id_stall_o = 1'b0;
@@ -60,7 +66,7 @@ module pipeline_controller(
         mem_flush_o = 1'b0;
         wb_flush_o = 1'b0;
 
-        if (mem_busy) begin  // stall if memory is busy
+        if (m_busy) begin  // stall if memory is busy
             if_stall_o = 1'b1;
             id_stall_o = 1'b1;
             exe_stall_o = 1'b1;
@@ -69,8 +75,46 @@ module pipeline_controller(
         end else if (exe_if_pc_mux_i == 1'b1) begin  // branch and jump, flush ID & EXE
             id_flush_o = 1'b1;
             exe_flush_o = 1'b1;
+        end else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
+            (exe_rf_waddr_i == id_rf_raddr_a_i || exe_rf_waddr_i == id_rf_raddr_b_i)) begin
+            if_stall_o = 1'b1;
+            id_stall_o = 1'b1;
+            exe_stall_o = 1'b1;
+            mem_stall_o = 1'b1;
+            wb_stall_o = 1'b1;
         end
     end
-  
+
+    // data hazard
+    always_comb begin
+        exe_forward_alu_a_o = 32'h0000_0000;
+        exe_forward_alu_b_o = 32'h0000_0000;
+        exe_forward_alu_a_mux_o = 1'b0;
+        exe_forward_alu_b_mux_o = 1'b0;
+
+        // ALU@EXE/MEM->ALU
+        if (mem_rf_wen_i) begin
+            if (mem_rf_waddr_i == exe_rf_raddr_a_i) begin
+                exe_forward_alu_a_o = mem_rf_wdata_i;
+                exe_forward_alu_a_mux_o = 1'b1;
+            end
+            if (mem_rf_waddr_i == exe_rf_raddr_b_i) begin
+                exe_forward_alu_b_o = mem_rf_wdata_i;
+                exe_forward_alu_b_mux_o = 1'b1;
+            end
+        end
+        // ALU@MEM/WB->ALU
+        if (wb_rf_wen_i) begin
+            if(wb_rf_waddr_i == exe_rf_raddr_a_i) begin
+                exe_forward_alu_a_o = wb_rf_wdata_i;
+                exe_forward_alu_a_mux_o = 1'b1;
+            end
+            if(wb_rf_waddr_i == exe_rf_raddr_b_i) begin
+                exe_forward_alu_b_o = wb_rf_wdata_i;
+                exe_forward_alu_b_mux_o = 1'b1;
+            end
+        end   
+    end
+    
 
 endmodule
