@@ -1,4 +1,7 @@
-module pipeline(
+module pipeline #(
+    parameter ADDR_WIDTH = 32,
+    parameter DATA_WIDTH = 32
+) (
     input wire clk_i,
     input wire rst_i,
 

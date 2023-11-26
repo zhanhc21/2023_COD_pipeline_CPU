@@ -32,6 +32,7 @@ module ID_Stage (
     output reg [ 4:0] exe_rf_waddr_o,
     output reg        exe_rf_wen_o,  // 1: enable
 );
+    // TODO: stall signal and flush signal
     reg [31:0] pc_reg;
 
     reg [31:0] inst_reg;
@@ -96,7 +97,6 @@ module ID_Stage (
         ALU_ROL = 4'd10,
     } alu_op_type_t;
     
-    // TODO: regfile
     always_comb begin
         pc_reg = id_pc_i;
         inst_reg = id_instr_i;
