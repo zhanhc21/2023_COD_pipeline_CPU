@@ -43,6 +43,7 @@ module EXE_Stage (
 ); 
 
     logic [6:0]  opcode;
+    logic [31:0] SignExt;
     typedef enum logic [4:0] {
         ADD   = 0,
         ADDI  = 1,
@@ -70,6 +71,7 @@ module EXE_Stage (
     // inst decode
     always_comb begin
         opcode = exe_instr_i[6:0];
+        SignExt = {{20{exe_imm_i[10]}}, {12{1'b0}}};
         case (opcode)
             7'b0110011: begin
                 if (exe_instr_i[14:12] == 3'b000)
@@ -157,7 +159,7 @@ module EXE_Stage (
                 BEQ: begin 
                     if (alu_result_i == 0) begin
                         if_pc_mux_o <= 1'b1;
-                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | {{20{exe_imm_i[10]}}, 12{0}};               
+                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;               
                     end else begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
@@ -166,7 +168,7 @@ module EXE_Stage (
                 BNE: begin
                     if (alu_result_i != 0) begin
                         if_pc_mux_o <= 1'b1;
-                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | {{20{exe_imm_i[10]}}, 12{1'b0}};    
+                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;    
                     end else begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;        

@@ -63,50 +63,50 @@ module MEM_Stage (
 
     // inst decode
     always_comb begin
-        opcode = exe_instr_i[6:0];
+        opcode = mem_instr_i[6:0];
         case (opcode)
             7'b0110011: begin
-                if (exe_instr_i[14:12] == 3'b000)
+                if (mem_instr_i[14:12] == 3'b000)
                     instr_type = ADD;
-                else if (exe_instr_i[14:12] == 3'b111)
+                else if (mem_instr_i[14:12] == 3'b111)
                     instr_type = AND;
-                else if (exe_instr_i[14:12] == 3'b110)
+                else if (mem_instr_i[14:12] == 3'b110)
                     instr_type = OR;
-                else (exe_instr_i[14:12] == 3'b100)
+                else if (mem_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
             end
             7'b0010011: begin
-                if (exe_instr_i[14:12] == 3'b000)
+                if (mem_instr_i[14:12] == 3'b000)
                     instr_type = ADDI;
-                else if (exe_instr_i[14:12] == 3'b111)
+                else if (mem_instr_i[14:12] == 3'b111)
                     instr_type = ANDI;
-                else if (exe_instr_i[14:12] == 3'b110)
+                else if (mem_instr_i[14:12] == 3'b110)
                     instr_type = ORI;
-                else if (exe_instr_i[14:12] == 3'b001)
+                else if (mem_instr_i[14:12] == 3'b001)
                     instr_type = SLLI;
-                else (exe_instr_i[14:12] == 3'b101)
+                else if (mem_instr_i[14:12] == 3'b101)
                     instr_type = SRLI;
             end
             7'b0010111: instr_type = AUIPC;
             7'b1100011: begin
-                if (exe_instr_i[14:12] == 3'b000)
+                if (mem_instr_i[14:12] == 3'b000)
                     instr_type = BEQ;
-                else (exe_instr_i[14:12] == 3'b001)
+                else if (mem_instr_i[14:12] == 3'b001)
                     instr_type = BNE;
             end
             7'b1101111: instr_type = JAL;
             7'b1100111: instr_type = JALR;
             7'b0000011: begin
-                if (exe_instr_i[14:12] == 3'b000)
+                if (mem_instr_i[14:12] == 3'b000)
                     instr_type = LB;
-                else (exe_instr_i[14:12] == 3'b010)
+                else if (mem_instr_i[14:12] == 3'b010)
                     instr_type = LW; 
             end
             7'b0110111: instr_type = LUI;
             7'b0100011: begin
-                if (exe_instr_i[14:12] == 3'b000)
+                if (mem_instr_i[14:12] == 3'b000)
                     instr_type = SB;
-                else (exe_instr_i[14:12] == 3'b010)
+                else if (mem_instr_i[14:12] == 3'b010)
                     instr_type = SW; 
             end
             default: instr_type = NOP;
