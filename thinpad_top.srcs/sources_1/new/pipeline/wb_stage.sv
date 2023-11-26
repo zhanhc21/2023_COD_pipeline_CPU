@@ -16,7 +16,7 @@ module WB_Stage (
     // signals to regfile
     output reg [31:0] rf_wdata_o,
     output reg [ 4:0] rf_waddr_o,
-    output reg        rf_wen_o,
+    output reg        rf_wen_o
 );
     // TODO: stall signal and flush signal
     always_comb begin

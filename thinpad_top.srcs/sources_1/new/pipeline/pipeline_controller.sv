@@ -24,6 +24,7 @@ module pipeline_controller(
     input wire [31:0] wb_rf_wdata_i,
     input wire [ 4:0] wb_rf_waddr_i,
     input wire        wb_rf_wen_i,
+    input wire exe_if_pc_mux_i,
 
     // wishbone busy signals
     input wire if_busy_i,
@@ -44,8 +45,8 @@ module pipeline_controller(
     // data hazard signals (forward unit)
     output reg [31:0] exe_forward_alu_a_o,
     output reg [31:0] exe_forward_alu_b_o,
-    output reg exe_forward_alu_a_sel_o,
-    output reg exe_forward_alu_b_sel_o
+    output reg exe_forward_alu_a_mux_o,
+    output reg exe_forward_alu_b_mux_o
 );
 
     logic m_busy;  // if memory busy (IF/MEM)

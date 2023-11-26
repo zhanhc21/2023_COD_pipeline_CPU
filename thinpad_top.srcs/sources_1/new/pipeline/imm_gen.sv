@@ -12,7 +12,7 @@ module imm_gen (
         TYPE_S = 2,
         TYPE_B = 3,
         TYPE_U = 4,
-        TYPE_J = 5,
+        TYPE_J = 5
     } type_t;
 
     always_comb begin

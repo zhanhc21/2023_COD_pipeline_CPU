@@ -86,7 +86,7 @@ module pipeline #(
         .a  (alu_operand_a),
         .b  (alu_operand_b),
         .op (alu_op),
-        .result (alu_result)
+        .y (alu_result)
     );
 
     // MEM signals
