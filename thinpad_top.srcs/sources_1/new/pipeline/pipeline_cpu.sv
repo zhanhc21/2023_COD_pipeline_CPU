@@ -169,12 +169,10 @@ module pipeline(
         .flush_i(id_flush),
 
         // regfile signals
-        .rf_raddr_a_i(rf_raddr_a_o),
-        .rf_raddr_b_i(rf_raddr_b_o),
-        .rf_rdata_a_o(rf_rdata_a_i),
-        .rf_rdata_b_o(rf_rdata_b_i),
-        .rf_waddr_i(rf_waddr_o),
-        .rf_wdata_i(rf_wdata_o),
+        .rf_rdata_a_i(rf_rdata_a_i),
+        .rf_rdata_b_i(rf_rdata_b_i),
+        .rf_raddr_a_o(rf_raddr_a_o),
+        .rf_raddr_b_o(rf_raddr_b_o),
 
         // signals to EXE stage
         .exe_pc_o(id_exe_pc),

@@ -11,12 +11,10 @@ module ID_Stage (
     input wire flush_i,
 
     // regfile signals
-    input wire [ 4:0] rf_raddr_a_i,
-    input wire [ 4:0] rf_raddr_b_i,
-    output reg [31:0] rf_rdata_a_o,
-    output reg [31:0] rf_rdata_b_o,
-    input wire [ 4:0] rf_waddr_i,
-    input wire [31:0] rf_wdata_i,
+    input wire [31:0] rf_rdata_a_i,
+    input wire [31:0] rf_rdata_b_i,
+    output reg [ 4:0] rf_raddr_a_o,
+    output reg [ 4:0] rf_raddr_b_o,
 
     // signals to EXE stage
     output reg [31:0] exe_pc_o,
@@ -26,13 +24,13 @@ module ID_Stage (
     output reg [31:0] exe_rf_rdata_a_o,
     output reg [31:0] exe_rf_rdata_b_o,
     output reg [31:0] exe_imm_o,
-    output reg        exe_mem_en_o,
-    output reg        exe_mem_wen_o,
+    output reg        exe_mem_en_o,  // 1: use
+    output reg        exe_mem_wen_o,  // 1: enable
     output reg [ 3:0] exe_alu_op_o,
     output reg        exe_alu_a_mux_o,  // 0: rs1, 1: pc
     output reg        exe_alu_b_mux_o,  // 0: imm, 1: rs2
     output reg [ 4:0] exe_rf_waddr_o,
-    output reg        exe_rf_wen_o,
+    output reg        exe_rf_wen_o,  // 1: enable
 );
     reg [31:0] pc_reg;
 
@@ -49,6 +47,13 @@ module ID_Stage (
     reg [3:0] alu_op_reg;
     reg       alu_a_mux_reg;
     reg       alu_b_mux_reg;
+
+    reg [31:0] rdata_a_reg;
+    reg [31:0] rdata_b_reg;
+
+    reg mem_en_reg;
+    reg mem_wen_reg;
+    reg rf_wen_reg;
 
     imm_gen u_imm_gen(
         .inst(inst_reg),
@@ -101,6 +106,9 @@ module ID_Stage (
         rs1_reg = id_instr_i[19:15];
         rs2_reg = id_instr_i[24:20];
 
+        rdata_a_reg = rf_rdata_a_i;
+        rdata_b_reg = rf_rdata_b_i;
+
         case(opcode_reg)
             OPCODE_ADD_AND_OR_XOR: begin
                 inst_type_reg = TYPE_R;
@@ -120,6 +128,9 @@ module ID_Stage (
                 endcase
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 1;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_ADDI_ANDI_ORI_SLLI_SRLI: begin
                 inst_type_reg = TYPE_I;
@@ -142,58 +153,91 @@ module ID_Stage (
                 endcase
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_AUIPC: begin
                 inst_type_reg = TYPE_U;
                 alu_op_reg = ALU_DEFAULT;
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_BEQ_BNE: begin
                 inst_type_reg = TYPE_B;
                 alu_op_reg = ALU_ADD;
                 alu_a_mux_reg = 1;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 0;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_JAL: begin
                 inst_type_reg = TYPE_J;
                 alu_op_reg = ALU_ADD;
                 alu_a_mux_reg = 1;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_JALR: begin  // NOTE: pc = alu_result & ~1
                 inst_type_reg = TYPE_I;
                 alu_op_reg = ALU_ADD;
                 alu_a_mux_reg = 1;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_LB_LW: begin
                 inst_type_reg = TYPE_I;
                 alu_op_reg = ALU_ADD;
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 1;
+                mem_wen_reg = 0;
             end
             OPCODE_LUI: begin
                 inst_type_reg = TYPE_U;
                 alu_op_reg = ALU_DEFAULT;
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
             end
             OPCODE_SB_SW: begin
                 inst_type_reg = TYPE_S;
                 alu_op_reg = ALU_ADD;
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 0;
+                rf_wen_reg = 0;
+                mem_en_reg = 1;
+                mem_wen_reg = 1;
             end
         endcase
     end
 
+    assign rf_raddr_a_o = rs1_reg;
+    assign rf_raddr_b_o = rs2_reg;
+
     assign exe_pc_o = pc_reg;
     assign exe_instr_o = inst_reg;
-
+    assign exe_rf_raddr_a_o = rs1_reg;
+    assign exe_rf_raddr_b_o = rs2_reg;
+    assign exe_rf_rdata_a_o = rdata_a_reg;
+    assign exe_rf_rdata_b_o = rdata_b_reg;
     assign exe_imm_o = imm_gen_imm_i;
-
+    assign exe_mem_en_o = mem_en_reg;
+    assign exe_mem_wen_o = mem_wen_reg;
     assign exe_alu_op_o = alu_op_reg;
     assign exe_alu_a_mux_o = alu_a_mux_reg;
     assign exe_alu_b_mux_o = alu_b_mux_reg;
+    assign exe_rf_waddr_o = rd_reg;
+    assign exe_rf_wen_o = rf_wen_reg;
 endmodule
