@@ -220,24 +220,53 @@ module ID_Stage (
                 mem_en_reg = 1;
                 mem_wen_reg = 1;
             end
+            default: begin
+                inst_type_reg = TYPE_R;
+                alu_op_reg = ALU_DEFAULT;
+                alu_a_mux_reg = 0;
+                alu_b_mux_reg = 0;
+                rf_wen_reg = 0;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
+            end
         endcase
+    end
+
+    always_ff @ (posedge clk_i) begin
+        if (rst_i) begin
+            exe_pc_o <= 32'b0;
+            exe_instr_o <= 32'b0;
+            exe_rf_raddr_a_o <= 5'b0;
+            exe_rf_raddr_b_o <= 5'b0;
+            exe_rf_rdata_a_o <= 32'b0;
+            exe_rf_rdata_b_o <= 32'b0;
+            exe_imm_o <= 32'b0;
+            exe_mem_en_o <= 1'b0;
+            exe_mem_wen_o <= 1'b0;
+            exe_alu_op_o <= 4'b0;
+            exe_alu_a_mux_o <= 1'b0;
+            exe_alu_b_mux_o <= 1'b0;
+            exe_rf_waddr_o <= 5'b0;
+            exe_rf_wen_o <= 1'b0;
+        end else begin
+            exe_pc_o <= pc_reg;
+            exe_instr_o <= inst_reg;
+            exe_rf_raddr_a_o <= rs1_reg;
+            exe_rf_raddr_b_o <= rs2_reg;
+            exe_rf_rdata_a_o <= rdata_a_reg;
+            exe_rf_rdata_b_o <= rdata_b_reg;
+            exe_imm_o <= imm_gen_imm_i;
+            exe_mem_en_o <= mem_en_reg;
+            exe_mem_wen_o <= mem_wen_reg;
+            exe_alu_op_o <= alu_op_reg;
+            exe_alu_a_mux_o <= alu_a_mux_reg;
+            exe_alu_b_mux_o <= alu_b_mux_reg;
+            exe_rf_waddr_o <= rd_reg;
+            exe_rf_wen_o <= rf_wen_reg;
+        end
     end
 
     assign rf_raddr_a_o = rs1_reg;
     assign rf_raddr_b_o = rs2_reg;
-
-    assign exe_pc_o = pc_reg;
-    assign exe_instr_o = inst_reg;
-    assign exe_rf_raddr_a_o = rs1_reg;
-    assign exe_rf_raddr_b_o = rs2_reg;
-    assign exe_rf_rdata_a_o = rdata_a_reg;
-    assign exe_rf_rdata_b_o = rdata_b_reg;
-    assign exe_imm_o = imm_gen_imm_i;
-    assign exe_mem_en_o = mem_en_reg;
-    assign exe_mem_wen_o = mem_wen_reg;
-    assign exe_alu_op_o = alu_op_reg;
-    assign exe_alu_a_mux_o = alu_a_mux_reg;
-    assign exe_alu_b_mux_o = alu_b_mux_reg;
-    assign exe_rf_waddr_o = rd_reg;
-    assign exe_rf_wen_o = rf_wen_reg;
+    
 endmodule
