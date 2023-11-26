@@ -1,12 +1,6 @@
-<<<<<<< thinpad_top.srcs/sources_1/new/pipeline/pipeline_cpu.sv
 module pipeline #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32
-=======
-module pipeline#(
     parameter DATA_WIDTH = 32,
     parameter ADDR_WIDTH = 32
->>>>>>> thinpad_top.srcs/sources_1/new/pipeline/pipeline_cpu.sv
 ) (
     input wire clk_i,
     input wire rst_i,

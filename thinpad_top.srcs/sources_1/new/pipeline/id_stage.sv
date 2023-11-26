@@ -30,7 +30,7 @@ module ID_Stage (
     output reg        exe_alu_a_mux_o,  // 0: rs1, 1: pc
     output reg        exe_alu_b_mux_o,  // 0: imm, 1: rs2
     output reg [ 4:0] exe_rf_waddr_o,
-    output reg        exe_rf_wen_o,  // 1: enable
+    output reg        exe_rf_wen_o  // 1: enable
 );
     // TODO: stall signal and flush signal
     reg [31:0] pc_reg;
@@ -71,7 +71,7 @@ module ID_Stage (
         OPCODE_JALR = 7'b1100111,
         OPCODE_LB_LW = 7'b0000011,
         OPCODE_LUI = 7'b0110111,
-        OPCODE_SB_SW = 7'b0100011,
+        OPCODE_SB_SW = 7'b0100011
     } opcode_t;
 
     typedef enum logic [2:0] {
@@ -80,7 +80,7 @@ module ID_Stage (
         TYPE_S = 2,
         TYPE_B = 3,
         TYPE_U = 4,
-        TYPE_J = 5,
+        TYPE_J = 5
     } inst_type_t;
 
     typedef enum logic [3:0] {
@@ -94,7 +94,7 @@ module ID_Stage (
         ALU_SLL = 4'd7,
         ALU_SRL = 4'd8,
         ALU_SRA = 4'd9,
-        ALU_ROL = 4'd10,
+        ALU_ROL = 4'd10
     } alu_op_type_t;
     
     always_comb begin

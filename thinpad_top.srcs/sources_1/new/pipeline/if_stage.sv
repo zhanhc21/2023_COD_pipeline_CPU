@@ -6,7 +6,7 @@ module ID_Stage #(
     input wire rst_i,
 
     // stall signal and flush signal
-    input wire busy_i;
+    input wire busy_i,
     input wire stall_i,
     input wire flush_i,
 
@@ -26,7 +26,7 @@ module ID_Stage #(
 
     // signals to ID stage
     output reg [31:0] id_pc_o,
-    output reg [31:0] id_instr_o,
+    output reg [31:0] id_instr_o
 );
     // TODO: stall signal and flush signal
     reg [31:0] pc_reg;
@@ -51,9 +51,9 @@ module ID_Stage #(
             wb_we_o <= 1'b0;
             wb_sel_o <= 4'b1111;
             if (pc_mux_i == 1) begin
-                wb_adr_o <= pc_from_exe_i;
+                wb_addr_o <= pc_from_exe_i;
             end else begin
-                wb_adr_o <= pc_reg;
+                wb_addr_o <= pc_reg;
             end
 
             if (wb_ack_i) begin
