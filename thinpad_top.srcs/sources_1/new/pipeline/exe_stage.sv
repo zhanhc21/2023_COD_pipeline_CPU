@@ -80,7 +80,7 @@ module EXE_Stage (
                     instr_type = AND;
                 else if (exe_instr_i[14:12] == 3'b110)
                     instr_type = OR;
-                else if (exe_instr_i[14:12] == 3'b100)
+                else // (exe_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
             end
             7'b0010011: begin
@@ -92,14 +92,14 @@ module EXE_Stage (
                     instr_type = ORI;
                 else if (exe_instr_i[14:12] == 3'b001)
                     instr_type = SLLI;
-                else if (exe_instr_i[14:12] == 3'b101)
+                else // (exe_instr_i[14:12] == 3'b101)
                     instr_type = SRLI;
             end
             7'b0010111: instr_type = AUIPC;
             7'b1100011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = BEQ;
-                else if (exe_instr_i[14:12] == 3'b001)
+                else // (exe_instr_i[14:12] == 3'b001)
                     instr_type = BNE;
             end
             7'b1101111: instr_type = JAL;
@@ -107,14 +107,14 @@ module EXE_Stage (
             7'b0000011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = LB;
-                else if (exe_instr_i[14:12] == 3'b010)
+                else // (exe_instr_i[14:12] == 3'b010)
                     instr_type = LW; 
             end
             7'b0110111: instr_type = LUI;
             7'b0100011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = SB;
-                else if (exe_instr_i[14:12] == 3'b010)
+                else // (exe_instr_i[14:12] == 3'b010)
                     instr_type = SW; 
             end
             default: instr_type = NOP;
