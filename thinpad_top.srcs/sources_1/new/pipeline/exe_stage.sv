@@ -188,6 +188,10 @@ module EXE_Stage (
                     if_pc_o <= exe_pc_i;
                     mem_mem_wdata_o <= exe_rf_rdata_a_i << ((alu_result_i % 4) * 8); // rs1      
                 end
+                LUI: begin
+                    // U型指令 理论上赋值是这里 而不是alu的default?
+                    mem_alu_result_o <= exe_imm_i << 32'd12;
+                end
                 NOP: begin
                     if_pc_mux_o <= 1'b0;
                     if_pc_o <= exe_pc_i;
