@@ -18,7 +18,7 @@ module MEM_Stage (
     input wire [31:0] mem_instr_i,
     input wire [31:0] mem_mem_wdata_i,
     input wire        mem_mem_en_i,
-    input wire        mem_mem_wen_i,
+    input wire        mem_mem_wen_i,     // if write DM (0: read DM, 1: write DM)
     input wire [31:0] mem_alu_result_i,
     input wire [31:0] mem_rf_waddr_i,
     input wire        mem_rf_wen_i,
@@ -124,7 +124,7 @@ module MEM_Stage (
 
             if (mem_mem_en_i) begin
                 if (mem_mem_wen_i) begin
-                    // 写ram
+                    // S type: write ram
                     wb_cyc_o  <= 1'b1;
                     wb_stb_o  <= 1'b1;
                     wb_we_o   <= 1'b1;
@@ -135,7 +135,7 @@ module MEM_Stage (
                     else
                         wb_sel_o <= 4'b1111;
                 end else begin
-                    // 读ram
+                    // L type: read ram
                     wb_cyc_o  <= 1'b1;
                     wb_stb_o  <= 1'b1;
                     wb_we_o   <= 1'b0;
@@ -143,6 +143,7 @@ module MEM_Stage (
                     wb_data_o <= 32'b0;
                     wb_sel_o <= 4'b1111;
                     if (wb_ack_i)
+                        // write back to regfile
                         wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                 end
             end else begin
@@ -152,6 +153,7 @@ module MEM_Stage (
                 wb_addr_o <= 32'b0;
                 wb_data_o <= 32'b0;
                 wb_sel_o  <= 4'b0;
+                // add, lui  e.g.
                 wb_rf_wdata_o <= mem_alu_result_i;
             end
         end

@@ -181,16 +181,15 @@ module EXE_Stage (
                 SB: begin
                     if_pc_mux_o <= 1'b0;
                     if_pc_o <= exe_pc_i;
-                    mem_mem_wdata_o <= exe_rf_rdata_a_i[7:0] << ((alu_result_i % 4) * 8); // rs1
+                    mem_mem_wdata_o <= exe_rf_rdata_b_i[7:0] << ((alu_result_i % 4) * 8); // write rs2[7:0] into ram
                 end
                 SW: begin
                     if_pc_mux_o <= 1'b0;
                     if_pc_o <= exe_pc_i;
-                    mem_mem_wdata_o <= exe_rf_rdata_a_i << ((alu_result_i % 4) * 8); // rs1      
+                    mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8); // write rs2 into ram   
                 end
                 LUI: begin
-                    // U型指令 理论上赋值是这里 而不是alu的default?
-                    mem_alu_result_o <= exe_imm_i << 32'd12;
+                    mem_alu_result_o <= exe_imm_i;
                 end
                 NOP: begin
                     if_pc_mux_o <= 1'b0;
