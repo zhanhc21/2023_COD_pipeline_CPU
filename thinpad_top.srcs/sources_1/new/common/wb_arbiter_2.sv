@@ -118,12 +118,12 @@ assign wbs_sel_o = wbm0_sel ? wbm0_sel_i :
                    wbm1_sel ? wbm1_sel_i :
                    {SELECT_WIDTH{1'b0}};
 
-// assign wbs_stb_o = wbm0_sel ? wbm0_stb_i :
-//                    wbm1_sel ? wbm1_stb_i :
-//                    1'b0;
-assign wbs_stb_o = wbm0_sel ? 1'b1 :
-                   wbm1_sel ? 1'b1 :
-                   1'b0;
+ assign wbs_stb_o = wbm0_sel ? wbm0_stb_i :
+                    wbm1_sel ? wbm1_stb_i :
+                    1'b0;
+//assign wbs_stb_o = wbm0_sel ? 1'b1 :
+//                   wbm1_sel ? 1'b1 :
+//                   1'b0;
 
 assign wbs_cyc_o = wbm0_sel ? 1'b1 :
                    wbm1_sel ? 1'b1 :
