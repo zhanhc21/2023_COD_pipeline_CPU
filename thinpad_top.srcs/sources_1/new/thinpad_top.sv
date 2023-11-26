@@ -362,8 +362,8 @@ module thinpad_top (
 
       // Master interface (to Lab5 master)
       .wbm_adr_i(wbm_adr_o),
-      .wbm_dat_i(wbm_dat_o),
-      .wbm_dat_o(wbm_dat_i),
+      .wbm_dat_i(wbm_dat_i),
+      .wbm_dat_o(wbm_dat_o),
       .wbm_we_i (wbm_we_o),
       .wbm_sel_i(wbm_sel_o),
       .wbm_stb_i(wbm_stb_o),
