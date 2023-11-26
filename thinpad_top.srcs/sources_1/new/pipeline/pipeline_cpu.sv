@@ -1,6 +1,12 @@
+<<<<<<< thinpad_top.srcs/sources_1/new/pipeline/pipeline_cpu.sv
 module pipeline #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
+=======
+module pipeline#(
+    parameter DATA_WIDTH = 32,
+    parameter ADDR_WIDTH = 32
+>>>>>>> thinpad_top.srcs/sources_1/new/pipeline/pipeline_cpu.sv
 ) (
     input wire clk_i,
     input wire rst_i,
@@ -23,7 +29,7 @@ module pipeline #(
     output reg [DATA_WIDTH-1:0] wbm_data_i_dm,
     input wire [DATA_WIDTH-1:0] wbm_data_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
-    output reg wbm_we_dm,
+    output reg wbm_we_dm
 );
   
     // regfile signals
@@ -118,7 +124,8 @@ module pipeline #(
 
     logic if_busy;
     logic mem_busy;
-
+    
+    logic if_stall;
     logic if_flush;
     logic id_stall;
     logic id_flush;
@@ -128,6 +135,11 @@ module pipeline #(
     logic mem_flush;
     logic wb_stall;
     logic wb_flush;
+    
+    logic [31:0] exe_forward_alu_a;
+    logic [31:0] exe_forward_alu_b;
+    logic exe_forward_alu_a_mux;
+    logic exe_forward_alu_b_mux;
 
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
@@ -188,8 +200,8 @@ module pipeline #(
         .exe_mem_en_o(id_exe_mem_en),
         .exe_mem_wen_o(id_exe_mem_wen),
         .exe_alu_op_o(id_exe_alu_op),
-        .exe_alu_a_mux_o(id_exe_alu_a_sel),  // 0: rs1, 1: pc
-        .exe_alu_b_mux_o(id_exe_alu_b_sel),  // 0: imm, 1: rs2
+        .exe_alu_a_mux_o(id_exe_alu_a_mux),  // 0: rs1, 1: pc
+        .exe_alu_b_mux_o(id_exe_alu_b_mux),  // 0: imm, 1: rs2
         .exe_rf_waddr_o(id_exe_rf_waddr),
         .exe_rf_wen_o(id_exe_rf_wen)
     );
@@ -342,5 +354,11 @@ module pipeline #(
         .exe_flush_o(exe_flush),
         .mem_flush_o(mem_flush),
         .wb_flush_o(wb_flush),
+
+        // data hazard signals (forward unit)
+        .exe_forward_alu_a_o(exe_forward_alu_a),
+        .exe_forward_alu_b_o(exe_forward_alu_b),
+        .exe_forward_alu_a_mux_o(exe_forward_alu_a_mux),
+        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux)
     );
 endmodule
