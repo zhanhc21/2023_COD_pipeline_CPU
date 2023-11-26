@@ -33,13 +33,13 @@ module EXE_Stage (
     output reg         mem_mem_en_o,      // if use DM
     output reg         mem_mem_wen_o,     // if write DM (0: read DM, 1: write DM)
     output reg  [ 4:0] mem_rf_waddr_o,    // rf addr
-    output reg         mem_rf_wen_o       // if write back (rf)
+    output reg         mem_rf_wen_o,       // if write back (rf)
 
     // signals to ALU
-    input  wire [31:0] alu_result_i;
-    output reg  [31:0] alu_operand_a_o;
-    output reg  [31:0] alu_operand_b_o;
-    output reg  [ 3:0] alu_op_o;
+    input  wire [31:0] alu_result_i,
+    output reg  [31:0] alu_operand_a_o,
+    output reg  [31:0] alu_operand_b_o,
+    output reg  [ 3:0] alu_op_o
 ); 
 
     logic [6:0]  opcode;
@@ -78,7 +78,7 @@ module EXE_Stage (
                     instr_type = AND;
                 else if (exe_instr_i[14:12] == 3'b110)
                     instr_type = OR;
-                else (exe_instr_i[14:12] == 3'b100)
+                else if (exe_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
             end
             7'b0010011: begin
@@ -90,14 +90,14 @@ module EXE_Stage (
                     instr_type = ORI;
                 else if (exe_instr_i[14:12] == 3'b001)
                     instr_type = SLLI;
-                else (exe_instr_i[14:12] == 3'b101)
+                else if (exe_instr_i[14:12] == 3'b101)
                     instr_type = SRLI;
             end
             7'b0010111: instr_type = AUIPC;
             7'b1100011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = BEQ;
-                else (exe_instr_i[14:12] == 3'b001)
+                else if (exe_instr_i[14:12] == 3'b001)
                     instr_type = BNE;
             end
             7'b1101111: instr_type = JAL;
@@ -105,14 +105,14 @@ module EXE_Stage (
             7'b0000011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = LB;
-                else (exe_instr_i[14:12] == 3'b010)
+                else if (exe_instr_i[14:12] == 3'b010)
                     instr_type = LW; 
             end
             7'b0110111: instr_type = LUI;
             7'b0100011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = SB;
-                else (exe_instr_i[14:12] == 3'b010)
+                else if (exe_instr_i[14:12] == 3'b010)
                     instr_type = SW; 
             end
             default: instr_type = NOP;
@@ -120,7 +120,7 @@ module EXE_Stage (
     end
 
     always_comb begin
-        if (stall == 1'b0) begin
+        if (stall_i == 1'b0) begin
             alu_op_o = exe_alu_op_i;
             if (exe_alu_a_mux_i == 1'b0)
                 alu_operand_a_o = exe_rf_rdata_a_i;
@@ -157,7 +157,7 @@ module EXE_Stage (
                 BEQ: begin 
                     if (alu_result_i == 0) begin
                         if_pc_mux_o <= 1'b1;
-                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | {{20{exe_imm_i[10]}}, 12{0}};                 
+                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | {{20{exe_imm_i[10]}}, 12{0}};               
                     end else begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;

@@ -1,4 +1,7 @@
-module pipeline(
+module pipeline#(
+    parameter DATA_WIDTH = 32,
+    parameter ADDR_WIDTH = 32
+) (
     input wire clk_i,
     input wire rst_i,
 
@@ -20,7 +23,7 @@ module pipeline(
     output reg [DATA_WIDTH-1:0] wbm_data_i_dm,
     input wire [DATA_WIDTH-1:0] wbm_data_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
-    output reg wbm_we_dm,
+    output reg wbm_we_dm
 );
   
     // regfile signals
@@ -115,7 +118,8 @@ module pipeline(
 
     logic if_busy;
     logic mem_busy;
-
+    
+    logic if_stall;
     logic if_flush;
     logic id_stall;
     logic id_flush;
@@ -190,8 +194,8 @@ module pipeline(
         .exe_mem_en_o(id_exe_mem_en),
         .exe_mem_wen_o(id_exe_mem_wen),
         .exe_alu_op_o(id_exe_alu_op),
-        .exe_alu_a_mux_o(id_exe_alu_a_sel),  // 0: rs1, 1: pc
-        .exe_alu_b_mux_o(id_exe_alu_b_sel),  // 0: imm, 1: rs2
+        .exe_alu_a_mux_o(id_exe_alu_a_mux),  // 0: rs1, 1: pc
+        .exe_alu_b_mux_o(id_exe_alu_b_mux),  // 0: imm, 1: rs2
         .exe_rf_waddr_o(id_exe_rf_waddr),
         .exe_rf_wen_o(id_exe_rf_wen)
     );
