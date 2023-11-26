@@ -9,3 +9,4 @@ thinpad_top.sim/
 /.lint/
 /.Xil
 /.Xilinx
+thinpad_top.srcs\sim_1\new\tb.sv
