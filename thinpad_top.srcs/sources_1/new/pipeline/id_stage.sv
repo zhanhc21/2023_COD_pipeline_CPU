@@ -159,8 +159,8 @@ module ID_Stage (
             end
             OPCODE_AUIPC: begin
                 inst_type_reg = TYPE_U;
-                alu_op_reg = ALU_DEFAULT;
-                alu_a_mux_reg = 0;
+                alu_op_reg = ALU_ADD;
+                alu_a_mux_reg = 1;
                 alu_b_mux_reg = 0;
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
