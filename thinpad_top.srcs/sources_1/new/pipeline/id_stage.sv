@@ -46,15 +46,15 @@ module ID_Stage (
     reg [ 4:0] rs2_reg;
 
     reg [3:0] alu_op_reg;
-    reg       alu_a_mux_reg;
-    reg       alu_b_mux_reg;
+    reg       alu_a_mux_reg;  // 0: rs1, 1: pc
+    reg       alu_b_mux_reg;  // 0: imm, 1: rs2
 
     reg [31:0] rdata_a_reg;
     reg [31:0] rdata_b_reg;
 
-    reg mem_en_reg;
-    reg mem_wen_reg;
-    reg rf_wen_reg;
+    reg mem_en_reg;  // 1: use
+    reg mem_wen_reg;  // 1: enable
+    reg rf_wen_reg;  // 1: enable
 
     imm_gen u_imm_gen(
         .inst(inst_reg),
@@ -234,6 +234,36 @@ module ID_Stage (
 
     always_ff @ (posedge clk_i) begin
         if (rst_i) begin
+            exe_pc_o <= 32'b0;
+            exe_instr_o <= 32'b0;
+            exe_rf_raddr_a_o <= 5'b0;
+            exe_rf_raddr_b_o <= 5'b0;
+            exe_rf_rdata_a_o <= 32'b0;
+            exe_rf_rdata_b_o <= 32'b0;
+            exe_imm_o <= 32'b0;
+            exe_mem_en_o <= 1'b0;
+            exe_mem_wen_o <= 1'b0;
+            exe_alu_op_o <= 4'b0;
+            exe_alu_a_mux_o <= 1'b0;
+            exe_alu_b_mux_o <= 1'b0;
+            exe_rf_waddr_o <= 5'b0;
+            exe_rf_wen_o <= 1'b0;
+        end else if (stall_i) begin
+            exe_pc_o <= exe_pc_o;
+            exe_instr_o <= exe_instr_o;
+            exe_rf_raddr_a_o <= exe_rf_raddr_a_o;
+            exe_rf_raddr_b_o <= exe_rf_raddr_b_o;
+            exe_rf_rdata_a_o <= exe_rf_rdata_a_o;
+            exe_rf_rdata_b_o <= exe_rf_rdata_b_o;
+            exe_imm_o <= exe_imm_o;
+            exe_mem_en_o <= exe_mem_en_o;
+            exe_mem_wen_o <= exe_mem_wen_o;
+            exe_alu_op_o <= exe_alu_op_o;
+            exe_alu_a_mux_o <= exe_alu_a_mux_o;
+            exe_alu_b_mux_o <= exe_alu_b_mux_o;
+            exe_rf_waddr_o <= exe_rf_waddr_o;
+            exe_rf_wen_o <= exe_rf_wen_o;
+        end else if (flush_i) begin
             exe_pc_o <= 32'b0;
             exe_instr_o <= 32'b0;
             exe_rf_raddr_a_o <= 5'b0;
