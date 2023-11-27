@@ -157,9 +157,10 @@ module EXE_Stage (
 
             case (instr_type)
                 BEQ: begin 
-                    if (alu_result_i == 0) begin
+                    if (exe_rf_rdata_a_i == exe_rf_rdata_b_i) begin
                         if_pc_mux_o <= 1'b1;
-                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;               
+                        if_pc_o <= alu_result_i;
+                        //if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;
                     end else begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
