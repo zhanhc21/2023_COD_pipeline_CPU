@@ -190,6 +190,8 @@ module EXE_Stage (
                     mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8); // write rs2 into ram   
                 end
                 LUI: begin
+                    if_pc_mux_o <= 1'b0;
+                    if_pc_o <= exe_pc_i;
                     mem_alu_result_o <= exe_imm_i;
                 end
                 NOP: begin
