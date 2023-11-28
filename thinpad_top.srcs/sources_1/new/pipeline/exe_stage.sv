@@ -122,21 +122,21 @@ module EXE_Stage (
     end
 
     always_comb begin
-        if (stall_i == 1'b0) begin
-            alu_op_o = exe_alu_op_i;
-            if (exe_alu_a_mux_i == 1'b0)
-                alu_operand_a_o = exe_rf_rdata_a_i;
-            else
-                alu_operand_a_o = exe_pc_i;
-            if (exe_alu_b_mux_i == 1'b0)
-                alu_operand_b_o = exe_imm_i;
-            else 
-                alu_operand_b_o = exe_rf_rdata_b_i;
-        end else begin
-            alu_op_o = 4'd1;
-            alu_operand_a_o = 32'h0;
-            alu_operand_b_o = 32'h0;
-        end
+        // if (stall_i == 1'b0) begin
+        alu_op_o = exe_alu_op_i;
+        if (exe_alu_a_mux_i == 1'b0)
+            alu_operand_a_o = exe_rf_rdata_a_i;
+        else
+            alu_operand_a_o = exe_pc_i;
+        if (exe_alu_b_mux_i == 1'b0)
+            alu_operand_b_o = exe_imm_i;
+        else 
+            alu_operand_b_o = exe_rf_rdata_b_i;
+        // end else begin
+        //     alu_op_o = 4'd1;
+        //     alu_operand_a_o = 32'h0;
+        //     alu_operand_b_o = 32'h0;
+        // end
     end
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
@@ -147,65 +147,67 @@ module EXE_Stage (
             mem_mem_wen_o <= 1'b0;
             mem_rf_wen_o <= 1'b0;
         end else begin
-            mem_pc_o         <= exe_pc_i;
-            mem_instr_o      <= exe_instr_i;
-            mem_alu_result_o <= alu_result_i;
-            mem_mem_en_o     <= exe_mem_en_i;
-            mem_mem_wen_o    <= exe_mem_wen_i;
-            mem_rf_waddr_o   <= exe_rf_waddr_i;
-            mem_rf_wen_o     <= exe_rf_wen_i;
+            if (stall_i == 1'b0) begin
+                mem_pc_o         <= exe_pc_i;
+                mem_instr_o      <= exe_instr_i;
+                mem_alu_result_o <= alu_result_i;
+                mem_mem_en_o     <= exe_mem_en_i;
+                mem_mem_wen_o    <= exe_mem_wen_i;
+                mem_rf_waddr_o   <= exe_rf_waddr_i;
+                mem_rf_wen_o     <= exe_rf_wen_i;
 
-            case (instr_type)
-                BEQ: begin 
-                    if (exe_rf_rdata_a_i == exe_rf_rdata_b_i) begin
-                        if_pc_mux_o <= 1'b1;
-                        if_pc_o <= alu_result_i;
-                        //if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;
-                    end else begin
+                case (instr_type)
+                    BEQ: begin 
+                        if (exe_rf_rdata_a_i == exe_rf_rdata_b_i) begin
+                            if_pc_mux_o <= 1'b1;
+                            if_pc_o <= alu_result_i;
+                            //if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;
+                        end else begin
+                            if_pc_mux_o <= 1'b0;
+                            if_pc_o <= exe_pc_i;
+                        end
+                    end
+                    BNE: begin
+                        if (alu_result_i != 0) begin
+                            if_pc_mux_o <= 1'b1;
+                            if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;    
+                        end else begin
+                            if_pc_mux_o <= 1'b0;
+                            if_pc_o <= exe_pc_i;        
+                        end
+                    end
+                    LB: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;               
+                    end
+                    SB: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
+                        mem_mem_wdata_o <= exe_rf_rdata_b_i[7:0] << ((alu_result_i % 4) * 8); // write rs2[7:0] into ram
                     end
-                end
-                BNE: begin
-                    if (alu_result_i != 0) begin
-                        if_pc_mux_o <= 1'b1;
-                        if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;    
-                    end else begin
+                    SW: begin
                         if_pc_mux_o <= 1'b0;
-                        if_pc_o <= exe_pc_i;        
+                        if_pc_o <= exe_pc_i;
+                        mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8); // write rs2 into ram   
                     end
-                end
-                LB: begin
-                    if_pc_mux_o <= 1'b0;
-                    if_pc_o <= exe_pc_i;               
-                end
-                SB: begin
-                    if_pc_mux_o <= 1'b0;
-                    if_pc_o <= exe_pc_i;
-                    mem_mem_wdata_o <= exe_rf_rdata_b_i[7:0] << ((alu_result_i % 4) * 8); // write rs2[7:0] into ram
-                end
-                SW: begin
-                    if_pc_mux_o <= 1'b0;
-                    if_pc_o <= exe_pc_i;
-                    mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8); // write rs2 into ram   
-                end
-                LUI: begin
-                    if_pc_mux_o <= 1'b0;
-                    if_pc_o <= exe_pc_i;
-                    mem_alu_result_o <= exe_imm_i;
-                end
-                NOP: begin
-                    if_pc_mux_o <= 1'b0;
-                    if_pc_o <= exe_pc_i;
-                    mem_mem_en_o <= 1'b0;
-                    mem_mem_wen_o <= 1'b0;
-                    mem_rf_wen_o <= 1'b0;
-                end
-                default: begin
-                    if_pc_mux_o <= 1'b0;
-                    if_pc_o <= exe_pc_i;                  
-                end
-            endcase
+                    LUI: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
+                    end
+                    NOP: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_mem_en_o <= 1'b0;
+                        mem_mem_wen_o <= 1'b0;
+                        mem_rf_wen_o <= 1'b0;
+                    end
+                    default: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;                  
+                    end
+                endcase
+            end
         end
     end
 endmodule

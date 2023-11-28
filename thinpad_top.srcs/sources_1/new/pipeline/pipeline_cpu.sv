@@ -271,7 +271,7 @@ module pipeline #(
         .mem_rf_wen_i(exe_mem_rf_wen),
 
         // stall signal and flush signal
-        .busy_i(mem_busy),
+        .busy_o(mem_busy),
         .stall_i(mem_stall),
         .flush_i(mem_flush),
 
@@ -322,11 +322,11 @@ module pipeline #(
         .exe_rf_waddr_i(exe_rf_waddr),
 
         // signals from EXE/MEM pipeline registers
-        .mem_rf_wdata_i(mem_rf_wdata),
-        .mem_rf_waddr_i(mem_rf_waddr),
-        .mem_rf_wen_i(mem_rf_wen),
-        .mem_mem_en_i(mem_mem_en),
-        .mem_mem_wen_i(mem_mem_wen),
+        .mem_rf_wdata_i(exe_mem_rf_wdata),
+        .mem_rf_waddr_i(exe_mem_rf_waddr),
+        .mem_rf_wen_i(exe_mem_rf_wen),
+        .mem_mem_en_i(exe_mem_mem_en),
+        .mem_mem_wen_i(exe_mem_mem_wen),
 
         // signals from MEM/WB pipeline registers
         .wb_rf_wdata_i(wb_rf_wdata),
