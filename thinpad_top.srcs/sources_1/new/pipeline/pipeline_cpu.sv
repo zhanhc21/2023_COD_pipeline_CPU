@@ -322,7 +322,7 @@ module pipeline #(
         .exe_rf_waddr_i(exe_rf_waddr),
 
         // signals from EXE/MEM pipeline registers
-        .mem_rf_wdata_i(exe_mem_rf_wdata),
+        .mem_rf_wdata_i(exe_mem_alu_result),
         .mem_rf_waddr_i(exe_mem_rf_waddr),
         .mem_rf_wen_i(exe_mem_rf_wen),
         .mem_mem_en_i(exe_mem_mem_en),
