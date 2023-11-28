@@ -11,3 +11,4 @@ thinpad_top.sim/
 /.Xilinx
 thinpad_top.srcs/sim_1/new/tb.sv
 thinpad_top.xpr
+tb_behav.wcfg
