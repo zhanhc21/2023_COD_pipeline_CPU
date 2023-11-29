@@ -125,6 +125,9 @@ module ID_Stage (
                     3'b100: begin  // <instruction is XOR>
                         alu_op_reg = ALU_XOR;
                     end
+                    default: begin
+                        alu_op_reg = ALU_DEFAULT;
+                    end
                 endcase
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 1;
@@ -149,6 +152,9 @@ module ID_Stage (
                     end
                     3'b101: begin  // <instruction is SRLI>
                         alu_op_reg = ALU_SRL;
+                    end
+                    default: begin
+                        alu_op_reg = ALU_DEFAULT;
                     end
                 endcase
                 alu_a_mux_reg = 0;

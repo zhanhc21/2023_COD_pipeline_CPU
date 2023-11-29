@@ -183,12 +183,14 @@ module EXE_Stage (
                     SB: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
-                        mem_mem_wdata_o <= exe_rf_rdata_b_i[7:0] << ((alu_result_i % 4) * 8); // write rs2[7:0] into ram
+                        // write rs2[7:0] into ram
+                        mem_mem_wdata_o <= exe_rf_rdata_b_i[7:0] << ((alu_result_i % 4) * 8); 
                     end
                     SW: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
-                        mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8); // write rs2 into ram   
+                        // write rs2 into ram   
+                        mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8);
                     end
                     LUI: begin
                         if_pc_mux_o <= 1'b0;

@@ -36,6 +36,14 @@ module MEM_Stage (
     output reg        wb_rf_wen_o    // if write back (WB)
 );
 
+    logic mem_finish;
+    always_ff @ (posedge clk_i) begin
+        if (!mem_mem_en_i)
+            mem_finish <= 1'b0;
+        if (wb_ack_i)
+            mem_finish <= 1'b1;
+    end
+
     logic [6:0]  opcode;
     typedef enum logic [4:0] {
         ADD   = 0,
@@ -115,7 +123,12 @@ module MEM_Stage (
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
+            wb_cyc_o    <= 1'b0;
+            wb_stb_o    <= 1'b0;
+            wb_we_o     <= 1'b0;
+            wb_sel_o    <= 4'b0;
             wb_rf_wen_o <= 1'b0;
+            busy_o      <= 1'b0;
         end else begin
             wb_pc_o <= mem_pc_i;
             wb_instr_o <= mem_instr_i;
@@ -123,46 +136,44 @@ module MEM_Stage (
             wb_rf_wen_o <= mem_rf_wen_i;
 
             if (mem_mem_en_i) begin
+                wb_cyc_o  <= 1'b1;
+                wb_stb_o  <= 1'b1;
                 busy_o <= 1'b1;
+                wb_addr_o <= mem_alu_result_i;
                 if (mem_mem_wen_i) begin
                     // S type: write ram
-                    wb_cyc_o  <= 1'b1;
-                    wb_stb_o  <= 1'b1;
                     wb_we_o   <= 1'b1;
-                    wb_addr_o <= mem_alu_result_i;
                     wb_data_o <= mem_mem_wdata_i;
                     if (instr_type == SB)
                         wb_sel_o <= 4'b0001;
                     else
                         wb_sel_o <= 4'b1111;
-                    if (wb_ack_i) begin
-                        wb_cyc_o  <= 1'b0;
-                        wb_stb_o  <= 1'b0;
-                        busy_o <= 1'b0;
-                    end
                 end else begin
                     // L type: read ram
-                    wb_cyc_o  <= 1'b1;
-                    wb_stb_o  <= 1'b1;
                     wb_we_o   <= 1'b0;
-                    wb_addr_o <= mem_alu_result_i;
                     wb_data_o <= 32'b0;
                     wb_sel_o <= 4'b1111;
+                    // write back to regfile
                     if (wb_ack_i) begin
-                        // write back to regfile
-                        busy_o <= 1'b0;
-                        wb_cyc_o  <= 1'b0;
-                        wb_stb_o  <= 1'b0;
                         wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end
-            end else begin
+                // wirte or read ram finish
+                if (mem_finish) begin
+                    wb_cyc_o  <= 1'b0;
+                    wb_stb_o  <= 1'b0;
+                    wb_we_o   <= 1'b0;
+                    busy_o    <= 1'b0;
+                end
+            end else begin 
+                // no need for ram
                 wb_cyc_o  <= 1'b0;
                 wb_stb_o  <= 1'b0;
                 wb_we_o   <= 1'b0;
                 wb_addr_o <= 32'b0;
                 wb_data_o <= 32'b0;
                 wb_sel_o  <= 4'b0;
+                busy_o    <= 1'b0;
                 // add, lui  e.g.
                 wb_rf_wdata_o <= mem_alu_result_i;
             end
