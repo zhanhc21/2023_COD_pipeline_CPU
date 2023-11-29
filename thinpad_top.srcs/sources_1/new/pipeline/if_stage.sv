@@ -45,9 +45,17 @@ module IF_Stage #(
             pc_reg <= 32'h80000000;
             pc_now_reg <= 32'h80000000;
             inst_reg <= 32'b0;
+        end else if (stall_i) begin
+            wb_cyc_o <= 1'b0;
+            wb_stb_o <= 1'b0;
+            wb_addr_o <= 32'b0;
+            wb_data_o <= 32'b0;
+            wb_sel_o <= 4'b0;
+            wb_we_o <= 1'b0;
 
-//            id_pc_o <= 32'h80000000;
-//            id_instr_o <= 32'b0;
+            pc_reg <= pc_reg;
+            pc_now_reg <= pc_now_reg;
+            inst_reg <= inst_reg;
         end else if (flush_i) begin
             wb_cyc_o <= 1'b0;
             wb_stb_o <= 1'b0;
@@ -59,9 +67,6 @@ module IF_Stage #(
             pc_reg <= 32'b0;
             pc_now_reg <= 32'b0;
             inst_reg <= 32'b0;
-
-//            id_pc_o <= 32'b0;
-//            id_instr_o <= 32'b0;
         end else begin
             wb_cyc_o <= 1'b1;
             wb_stb_o <= 1'b1;
@@ -80,14 +85,11 @@ module IF_Stage #(
                 wb_sel_o <= 4'b0000;
 
                 inst_reg <= wb_data_i;
-//                id_instr_o <= wb_data_i;
                 if (pc_mux_i == 1) begin
                     pc_now_reg <= pc_from_exe_i;
-//                    id_pc_o <= pc_from_exe_i;
                     pc_reg <= pc_from_exe_i + 32'h00000004;
                 end else begin
                     pc_now_reg <= pc_reg;
-//                    id_pc_o <= pc_reg;
                     pc_reg <= pc_reg + 32'h00000004;
                 end
             end
@@ -99,9 +101,7 @@ module IF_Stage #(
             id_pc_o <= 32'h80000000;
             id_instr_o <= 32'b0;
         end
-        else if (stall_i) begin
-            // pass
-        end else begin
+        else begin
             id_pc_o <= pc_now_reg;
             id_instr_o <= inst_reg;
         end
