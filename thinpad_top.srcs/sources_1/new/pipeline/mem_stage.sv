@@ -38,7 +38,8 @@ module MEM_Stage (
 
     logic mem_finish;
     always_ff @ (posedge clk_i) begin
-        if (!mem_mem_en_i)
+        past_instr_type <= instr_type;
+        if (!mem_mem_en_i | past_instr_type != instr_type)
             mem_finish <= 1'b0;
         if (wb_ack_i)
             mem_finish <= 1'b1;
@@ -67,7 +68,7 @@ module MEM_Stage (
         XOR   = 18,
         NOP   = 19
     } op_type;
-    op_type instr_type;
+    op_type instr_type, past_instr_type;
 
     // inst decode
     always_comb begin
