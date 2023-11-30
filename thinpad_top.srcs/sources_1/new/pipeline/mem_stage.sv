@@ -80,12 +80,22 @@ module MEM_Stage (
             7'b0110011: begin
                 if (mem_instr_i[14:12] == 3'b000)
                     instr_type = ADD;
-                else if (mem_instr_i[14:12] == 3'b111)
-                    instr_type = AND;
-                else if (mem_instr_i[14:12] == 3'b110)
-                    instr_type = OR;
-                else // (mem_instr_i[14:12] == 3'b100)
+                else if (mem_instr_i[14:12] == 3'b111) begin
+                    if (mem_instr_i[31:25] == 7'b0000000)
+                        instr_type = AND;
+                    else // (mem_instr_i[31:25] == 7'b0100000)
+                        instr_type = ANDN;
+                end 
+                else if (mem_instr_i[14:12] == 3'b110) begin
+                    if (mem_instr_i[31:25] == 7'b0000101)
+                        instr_type = MINU;
+                    else
+                        instr_type = OR;
+                end
+                else if (mem_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
+                else // (mem_instr_i[14:12] == 3'b001)
+                    instr_type = SBSET;
             end
             7'b0010011: begin
                 if (mem_instr_i[14:12] == 3'b000)
