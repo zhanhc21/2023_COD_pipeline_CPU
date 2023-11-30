@@ -38,7 +38,11 @@ module EXE_Stage (
     output reg  [31:0] mem_alu_result_o,  // DM waddr
     output reg         mem_mem_en_o,      // if use DM
     output reg         mem_mem_wen_o,     // if write DM (0: read DM, 1: write DM)
+<<<<<<< thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
     output reg  [4:0] mem_rf_waddr_o,     // rf addr
+=======
+    output reg  [ 4:0] mem_rf_waddr_o,    // rf addr
+>>>>>>> thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
     output reg         mem_rf_wen_o,      // if write back (rf)
 
     // signals to ALU
@@ -70,7 +74,10 @@ module EXE_Stage (
         SRLI  = 16,
         SW    = 17,
         XOR   = 18,
-        NOP   = 19
+        ANDN  = 19,
+        SBSET = 20,
+        MINU  = 21,
+        NOP   = 22
     } op_type;
     op_type instr_type;
 
@@ -82,8 +89,14 @@ module EXE_Stage (
             7'b0110011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = ADD;
-                else if (exe_instr_i[14:12] == 3'b111)
-                    instr_type = AND;
+                else if (exe_instr_i[14:12] == 3'b111) begin
+                    if (exe_instr_i[31:25] == 7'b0)
+                        instr_type = AND;
+                    else if (exe_instr_i[31:25] == 7'b0100000)
+                        instr_type = ANDN;
+                    else // exe_instr_i[31:25] == 7'b0010100
+                        instr_type = SBSET;
+                end
                 else if (exe_instr_i[14:12] == 3'b110)
                     instr_type = OR;
                 else // (exe_instr_i[14:12] == 3'b100)
@@ -138,10 +151,12 @@ module EXE_Stage (
             alu_operand_a_o = exe_rf_rdata_a_i;
         
         if (exe_alu_b_mux_i == 1'b0)
+            // imm
             alu_operand_b_o = exe_imm_i;
         else if (exe_forward_alu_b_mux_i)
             alu_operand_b_o = exe_forward_alu_b_i;
         else 
+            // rs2
             alu_operand_b_o = exe_rf_rdata_b_i;
         // end else begin
         //     alu_op_o = 4'd1;
@@ -179,17 +194,20 @@ module EXE_Stage (
                         end
                     end
                     BNE: begin
+<<<<<<< thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
                         if (exe_rf_rdata_a_i !== exe_rf_rdata_b_i && alu_result_i != 0) begin
                             if_pc_mux_o <= 1'b1;
                             if_pc_o <= alu_result_i;    
+=======
+                        if (exe_rf_rdata_a_i != exe_rf_rdata_b_i) begin
+                            if_pc_mux_o <= 1'b1;
+                            if_pc_o <= alu_result_i;
+                            // if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;    
+>>>>>>> thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
                         end else begin
                             if_pc_mux_o <= 1'b0;
                             if_pc_o <= exe_pc_i;        
                         end
-                    end
-                    LB: begin
-                        if_pc_mux_o <= 1'b0;
-                        if_pc_o <= exe_pc_i;               
                     end
                     SB: begin
                         if_pc_mux_o <= 1'b0;
@@ -208,6 +226,18 @@ module EXE_Stage (
                         if_pc_o <= exe_pc_i;
                         mem_alu_result_o <= exe_imm_i;
                     end
+                    JAL: begin
+                        if_pc_mux_o <= 1'b1;
+                        // pc += offset
+                        if_pc_o <= alu_result_i;
+                        mem_alu_result_o <= exe_pc_i + 32'd4;
+                    end
+                    JALR: begin
+                        if_pc_mux_o <= 1'b1;
+                        // pc = rs1 + offset
+                        if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
+                        mem_alu_result_o <= exe_pc_i + 32'd4;
+                    end
                     NOP: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
@@ -215,6 +245,7 @@ module EXE_Stage (
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
                     end
+                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  

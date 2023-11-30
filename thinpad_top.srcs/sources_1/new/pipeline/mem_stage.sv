@@ -66,7 +66,10 @@ module MEM_Stage (
         SRLI  = 16,
         SW    = 17,
         XOR   = 18,
-        NOP   = 19
+        ANDN  = 19,
+        SBSET = 20,
+        MINU  = 21,
+        NOP   = 22
     } op_type;
     op_type instr_type, past_instr_type;
 
@@ -139,7 +142,7 @@ module MEM_Stage (
             if (mem_mem_en_i) begin
                 wb_cyc_o  <= 1'b1;
                 wb_stb_o  <= 1'b1;
-                busy_o <= 1'b1;
+                busy_o    <= 1'b1;
                 wb_addr_o <= mem_alu_result_i;
                 if (mem_mem_wen_i) begin
                     // S type: write ram
@@ -153,7 +156,7 @@ module MEM_Stage (
                     // L type: read ram
                     wb_we_o   <= 1'b0;
                     wb_data_o <= 32'b0;
-                    wb_sel_o <= 4'b1111;
+                    wb_sel_o  <= 4'b1111;
                     // write back to regfile
                     if (wb_ack_i) begin
                         wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
@@ -165,6 +168,9 @@ module MEM_Stage (
                     wb_stb_o  <= 1'b0;
                     wb_we_o   <= 1'b0;
                     busy_o    <= 1'b0;
+                    wb_data_o <= 32'b0;
+                    wb_addr_o <= 32'b0;
+                    wb_sel_o  <= 4'b0;
                 end
             end else begin 
                 // no need for ram
