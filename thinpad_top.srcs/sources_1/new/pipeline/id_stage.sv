@@ -122,11 +122,11 @@ module ID_Stage (
                         alu_op_reg = ALU_ADD;
                     end
                     3'b111: begin  // <instruction is AND or ANDN or SBSET>
-                        if (exe_instr_i[31:25] == 7'b0)
+                        if (id_instr_i[31:25] == 7'b0)
                             alu_op_reg = ALU_AND;
-                        else if exe_instr_i[31:25] == 7'b0100000
+                        else if (id_instr_i[31:25] == 7'b0100000)
                             alu_op_reg = ALU_ANDN;
-                        else // exe_instr_i[31:25] == 7'b0010100
+                        else // id_instr_i[31:25] == 7'b0010100
                             alu_op_reg = ALU_SBSET;
                     end
                     3'b110: begin  // <instruction is OR>

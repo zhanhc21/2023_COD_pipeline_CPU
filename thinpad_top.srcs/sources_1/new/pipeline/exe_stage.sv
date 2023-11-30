@@ -88,7 +88,7 @@ module EXE_Stage (
                 else if (exe_instr_i[14:12] == 3'b111) begin
                     if (exe_instr_i[31:25] == 7'b0)
                         instr_type = AND;
-                    else if exe_instr_i[31:25] == 7'b0100000
+                    else if (exe_instr_i[31:25] == 7'b0100000)
                         instr_type = ANDN;
                     else // exe_instr_i[31:25] == 7'b0010100
                         instr_type = SBSET;
