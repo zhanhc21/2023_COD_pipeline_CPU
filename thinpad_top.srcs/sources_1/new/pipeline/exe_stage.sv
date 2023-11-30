@@ -70,7 +70,10 @@ module EXE_Stage (
         SRLI  = 16,
         SW    = 17,
         XOR   = 18,
-        NOP   = 19
+        ANDN  = 19,
+        SBSET = 20,
+        MINU  = 21,
+        NOP   = 22
     } op_type;
     op_type instr_type;
 
@@ -82,12 +85,22 @@ module EXE_Stage (
             7'b0110011: begin
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = ADD;
-                else if (exe_instr_i[14:12] == 3'b111)
-                    instr_type = AND;
-                else if (exe_instr_i[14:12] == 3'b110)
-                    instr_type = OR;
-                else // (exe_instr_i[14:12] == 3'b100)
+                else if (exe_instr_i[14:12] == 3'b111) begin
+                    if (exe_instr_i[31:25] == 7'b0000000)
+                        instr_type = AND;
+                    else // (exe_instr_i[31:25] == 7'b0100000)
+                        instr_type = ANDN;
+                end 
+                else if (exe_instr_i[14:12] == 3'b110) begin
+                    if (exe_instr_i[31:25] == 7'b0000101)
+                        instr_type = MINU;
+                    else
+                        instr_type = OR;
+                end
+                else if (exe_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
+                else // (exe_instr_i[14:12] == 3'b001)
+                    instr_type = SBSET;
             end
             7'b0010011: begin
                 if (exe_instr_i[14:12] == 3'b000)
@@ -158,12 +171,12 @@ module EXE_Stage (
             mem_mem_wen_o <= 1'b0;
             mem_rf_wen_o <= 1'b0;
         end else begin
-            if (stall_i == 1'b0 && (mem_pc_o !== exe_pc_i || mem_instr_o !== exe_instr_i) ) begin
+            if (stall_i == 1'b0 && (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i) ) begin
                 mem_pc_o         <= exe_pc_i;
                 mem_instr_o      <= exe_instr_i;
-                mem_alu_result_o <= alu_result_i;
                 mem_mem_en_o     <= exe_mem_en_i;
                 mem_mem_wen_o    <= exe_mem_wen_i;
+                mem_alu_result_o <= alu_result_i;
                 mem_rf_waddr_o   <= exe_rf_waddr_i;
                 mem_rf_wen_o     <= exe_rf_wen_i;
 
@@ -208,6 +221,27 @@ module EXE_Stage (
                         if_pc_o <= exe_pc_i;
                         mem_alu_result_o <= exe_imm_i;
                     end
+                    JAL: begin
+                        if_pc_mux_o <= 1'b1;
+                        // pc += offset
+                        if_pc_o <= alu_result_i;
+                        mem_alu_result_o <= exe_pc_i + 32'd4;
+                    end
+                    JALR: begin
+                        if_pc_mux_o <= 1'b1;
+                        // pc = rs1 + offset
+                        if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
+                        mem_alu_result_o <= exe_pc_i + 32'd4;
+                    end
+                    MINU: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        // ret rs1 < rs2 ? rs1 : rs2
+                        if (exe_rf_rdata_a_i < exe_rf_rdata_b_i)
+                            mem_alu_result_o <= exe_rf_rdata_a_i;
+                        else
+                            mem_alu_result_o <= exe_rf_rdata_b_i;
+                    end
                     NOP: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
@@ -215,6 +249,7 @@ module EXE_Stage (
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
                     end
+                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  

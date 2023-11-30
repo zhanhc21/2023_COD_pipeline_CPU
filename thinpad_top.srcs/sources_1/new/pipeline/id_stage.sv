@@ -45,6 +45,7 @@ module ID_Stage (
     reg [ 6:0] opcode_reg;
     reg [ 4:0] rd_reg;
     reg [ 2:0] funct3_reg;
+    reg [ 6:0] funct6_reg;
     reg [ 4:0] rs1_reg;
     reg [ 4:0] rs2_reg;
 
@@ -66,7 +67,7 @@ module ID_Stage (
     );
 
     typedef enum logic [6:0] {
-        OPCODE_ADD_AND_OR_XOR = 7'b0110011,
+        OPCODE_ADD_AND_OR_XOR_ANDN_SBSET = 7'b0110011,
         OPCODE_ADDI_ANDI_ORI_SLLI_SRLI = 7'b0010011,
         OPCODE_AUIPC = 7'b0010111,
         OPCODE_BEQ_BNE = 7'b1100011,
@@ -97,7 +98,9 @@ module ID_Stage (
         ALU_SLL = 4'd7,
         ALU_SRL = 4'd8,
         ALU_SRA = 4'd9,
-        ALU_ROL = 4'd10
+        ALU_ROL = 4'd10,
+        ALU_ANDN = 4'd11,
+        ALU_SBSET = 4'd12
     } alu_op_type_t;
     
     always_comb begin
@@ -106,6 +109,7 @@ module ID_Stage (
         opcode_reg = id_instr_i[6:0];
         rd_reg = id_instr_i[11:7];
         funct3_reg = id_instr_i[14:12];
+        funct6_reg = id_instr_i[31:25];
         rs1_reg = id_instr_i[19:15];
         rs2_reg = id_instr_i[24:20];
 
@@ -113,20 +117,27 @@ module ID_Stage (
         rdata_b_reg = rf_rdata_b_i;
 
         case(opcode_reg)
-            OPCODE_ADD_AND_OR_XOR: begin
+            OPCODE_ADD_AND_OR_XOR_ANDN_SBSET: begin
                 inst_type_reg = TYPE_R;
                 case(funct3_reg)
                     3'b000: begin  // <instruction is ADD>
                         alu_op_reg = ALU_ADD;
                     end
-                    3'b111: begin  // <instruction is AND>
-                        alu_op_reg = ALU_AND;
+                    3'b111: begin  // <instruction is AND or ANDN>
+                        case (funct6_reg)
+                            7'b0000000: alu_op_reg = ALU_AND;
+                            7'b0100000: alu_op_reg = ALU_ANDN;
+                            default:    alu_op_reg = ALU_DEFAULT;
+                        endcase
                     end
                     3'b110: begin  // <instruction is OR>
                         alu_op_reg = ALU_OR;
                     end
                     3'b100: begin  // <instruction is XOR>
                         alu_op_reg = ALU_XOR;
+                    end
+                    3'b001: begin  // <instruction is SBSET>
+                        alu_op_reg = ALU_SBSET;
                     end
                     default: begin
                         alu_op_reg = ALU_DEFAULT;

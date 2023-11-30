@@ -36,15 +36,6 @@ module MEM_Stage (
     output reg        wb_rf_wen_o    // if write back (WB)
 );
 
-    logic mem_finish;
-    always_ff @ (posedge clk_i) begin
-        past_instr_type <= instr_type;
-        if (!mem_mem_en_i | past_instr_type != instr_type)
-            mem_finish <= 1'b0;
-        if (wb_ack_i)
-            mem_finish <= 1'b1;
-    end
-
     logic [6:0]  opcode;
     typedef enum logic [4:0] {
         ADD   = 0,
@@ -66,9 +57,21 @@ module MEM_Stage (
         SRLI  = 16,
         SW    = 17,
         XOR   = 18,
-        NOP   = 19
+        ANDN  = 19,
+        SBSET = 20,
+        MINU  = 21,
+        NOP   = 22
     } op_type;
     op_type instr_type, past_instr_type;
+
+    logic mem_finish;
+    always_ff @ (posedge clk_i) begin
+        past_instr_type <= instr_type;
+        if (!mem_mem_en_i | past_instr_type != instr_type)
+            mem_finish <= 1'b0;
+        if (wb_ack_i)
+            mem_finish <= 1'b1;
+    end
 
     // inst decode
     always_comb begin
