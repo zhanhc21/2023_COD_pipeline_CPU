@@ -67,7 +67,7 @@ module ID_Stage (
     );
 
     typedef enum logic [6:0] {
-        OPCODE_ADD_AND_OR_XOR_ANDN_SBSET = 7'b0110011,
+        OPCODE_ADD_AND_OR_XOR_ANDN_SBSET_MINU = 7'b0110011,
         OPCODE_ADDI_ANDI_ORI_SLLI_SRLI = 7'b0010011,
         OPCODE_AUIPC = 7'b0010111,
         OPCODE_BEQ_BNE = 7'b1100011,
@@ -100,7 +100,8 @@ module ID_Stage (
         ALU_SRA = 4'd9,
         ALU_ROL = 4'd10,
         ALU_ANDN = 4'd11,
-        ALU_SBSET = 4'd12
+        ALU_SBSET = 4'd12,
+        ALU_MINU = 4'd13
     } alu_op_type_t;
     
     always_comb begin
@@ -117,7 +118,7 @@ module ID_Stage (
         rdata_b_reg = rf_rdata_b_i;
 
         case(opcode_reg)
-            OPCODE_ADD_AND_OR_XOR_ANDN_SBSET: begin
+            OPCODE_ADD_AND_OR_XOR_ANDN_SBSET_MINU: begin
                 inst_type_reg = TYPE_R;
                 case(funct3_reg)
                     3'b000: begin  // <instruction is ADD>
@@ -130,8 +131,12 @@ module ID_Stage (
                             default:    alu_op_reg = ALU_DEFAULT;
                         endcase
                     end
-                    3'b110: begin  // <instruction is OR>
-                        alu_op_reg = ALU_OR;
+                    3'b110: begin  // <instruction is OR or MINU>
+                        case (funct6_reg)
+                            7'b0000101: alu_op_reg = ALU_MINU;
+                            7'b0000000: alu_op_reg = ALU_OR;
+                            default:    alu_op_reg = ALU_DEFAULT;
+                        endcase
                     end
                     3'b100: begin  // <instruction is XOR>
                         alu_op_reg = ALU_XOR;

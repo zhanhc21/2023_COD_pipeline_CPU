@@ -233,15 +233,6 @@ module EXE_Stage (
                         if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
                         mem_alu_result_o <= exe_pc_i + 32'd4;
                     end
-                    MINU: begin
-                        if_pc_mux_o <= 1'b0;
-                        if_pc_o <= exe_pc_i;
-                        // ret rs1 < rs2 ? rs1 : rs2
-                        if (exe_rf_rdata_a_i < exe_rf_rdata_b_i)
-                            mem_alu_result_o <= exe_rf_rdata_a_i;
-                        else
-                            mem_alu_result_o <= exe_rf_rdata_b_i;
-                    end
                     NOP: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
@@ -249,7 +240,7 @@ module EXE_Stage (
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
                     end
-                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset
+                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  
