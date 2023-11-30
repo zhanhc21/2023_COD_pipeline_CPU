@@ -13,8 +13,8 @@ module ID_Stage (
     // regfile signals
     input wire [31:0] rf_rdata_a_i,
     input wire [31:0] rf_rdata_b_i,
-    output reg [ 4:0] rf_raddr_a_o,
-    output reg [ 4:0] rf_raddr_b_o,
+    output reg [4:0] rf_raddr_a_o,
+    output reg [4:0] rf_raddr_b_o,
     
     // signal to controller
     output reg exe_first_time_o,
@@ -22,17 +22,17 @@ module ID_Stage (
     // signals to EXE stage
     output reg [31:0] exe_pc_o,
     output reg [31:0] exe_instr_o,
-    output reg [ 4:0] exe_rf_raddr_a_o,
-    output reg [ 4:0] exe_rf_raddr_b_o,
+    output reg [4:0] exe_rf_raddr_a_o,
+    output reg [4:0] exe_rf_raddr_b_o,
     output reg [31:0] exe_rf_rdata_a_o,
     output reg [31:0] exe_rf_rdata_b_o,
     output reg [31:0] exe_imm_o,
     output reg        exe_mem_en_o,  // 1: use
     output reg        exe_mem_wen_o,  // 1: enable
-    output reg [ 3:0] exe_alu_op_o,
+    output reg [3:0] exe_alu_op_o,
     output reg        exe_alu_a_mux_o,  // 0: rs1, 1: pc
     output reg        exe_alu_b_mux_o,  // 0: imm, 1: rs2
-    output reg [ 4:0] exe_rf_waddr_o,
+    output reg [31:0] exe_rf_waddr_o,
     output reg        exe_rf_wen_o  // 1: enable
 );
     // TODO: stall signal and flush signal
@@ -313,7 +313,7 @@ module ID_Stage (
             exe_alu_op_o <= alu_op_reg;
             exe_alu_a_mux_o <= alu_a_mux_reg;
             exe_alu_b_mux_o <= alu_b_mux_reg;
-            exe_rf_waddr_o <= rd_reg;
+            exe_rf_waddr_o <= { 27'b0, rd_reg};
             exe_rf_wen_o <= rf_wen_reg;
         end
     end

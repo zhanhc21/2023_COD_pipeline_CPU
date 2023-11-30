@@ -15,7 +15,7 @@ module EXE_Stage (
     input wire [ 3:0] exe_alu_op_i,
     input wire        exe_alu_a_mux_i,    // 0: rs1, 1: pc
     input wire        exe_alu_b_mux_i,    // 0: imm, 1: rs2
-    input wire [ 4:0] exe_rf_waddr_i,
+    input wire [4:0] exe_rf_waddr_i,
     input wire        exe_rf_wen_i,
 
     // stall signal and flush signal
@@ -38,7 +38,7 @@ module EXE_Stage (
     output reg  [31:0] mem_alu_result_o,  // DM waddr
     output reg         mem_mem_en_o,      // if use DM
     output reg         mem_mem_wen_o,     // if write DM (0: read DM, 1: write DM)
-    output reg  [ 4:0] mem_rf_waddr_o,    // rf addr
+    output reg  [4:0] mem_rf_waddr_o,     // rf addr
     output reg         mem_rf_wen_o,      // if write back (rf)
 
     // signals to ALU
@@ -169,7 +169,7 @@ module EXE_Stage (
             mem_mem_wen_o <= 1'b0;
             mem_rf_wen_o <= 1'b0;
         end else begin
-            if (stall_i == 1'b0 && mem_pc_o !== exe_pc_i) begin
+            if (stall_i == 1'b0 && (mem_pc_o !== exe_pc_i || mem_instr_o !== exe_instr_i) ) begin
                 mem_pc_o         <= exe_pc_i;
                 mem_instr_o      <= exe_instr_i;
                 mem_alu_result_o <= alu_result_i;
@@ -190,10 +190,9 @@ module EXE_Stage (
                         end
                     end
                     BNE: begin
-                        if (exe_rf_rdata_a_i != exe_rf_rdata_b_i) begin
+                        if (exe_rf_rdata_a_i !== exe_rf_rdata_b_i && alu_result_i != 0) begin
                             if_pc_mux_o <= 1'b1;
-                            if_pc_o <= alu_result_i;
-                            // if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;    
+                            if_pc_o <= alu_result_i;    
                         end else begin
                             if_pc_mux_o <= 1'b0;
                             if_pc_o <= exe_pc_i;        
