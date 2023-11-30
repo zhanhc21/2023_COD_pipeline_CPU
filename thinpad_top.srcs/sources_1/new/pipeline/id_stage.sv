@@ -15,6 +15,9 @@ module ID_Stage (
     input wire [31:0] rf_rdata_b_i,
     output reg [ 4:0] rf_raddr_a_o,
     output reg [ 4:0] rf_raddr_b_o,
+    
+    // signal to controller
+    output reg exe_first_time_o,
 
     // signals to EXE stage
     output reg [31:0] exe_pc_o,
@@ -205,6 +208,7 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                rs2_reg = 5'b0;
             end
             OPCODE_LB_LW: begin
                 inst_type_reg = TYPE_I;
@@ -214,6 +218,7 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 1;
                 mem_wen_reg = 0;
+                rs2_reg = 5'b0;
             end
             OPCODE_LUI: begin
                 inst_type_reg = TYPE_U;
@@ -292,6 +297,10 @@ module ID_Stage (
             exe_rf_waddr_o <= 5'b0;
             exe_rf_wen_o <= 1'b0;
         end else begin
+            if (exe_pc_o != pc_reg)
+                exe_first_time_o <= 1'b1;
+            else 
+                exe_first_time_o <= 1'b0;
             exe_pc_o <= pc_reg;
             exe_instr_o <= inst_reg;
             exe_rf_raddr_a_o <= rs1_reg;

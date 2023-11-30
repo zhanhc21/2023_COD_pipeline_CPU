@@ -102,22 +102,10 @@ module pipeline #(
 
     logic [ 4:0] exe_rf_raddr_a;
     logic [ 4:0] exe_rf_raddr_b;
-    logic        exe_mem_en;
-    logic        exe_mem_wen;
-    logic [ 4:0] exe_rf_waddr;
-
-    logic [31:0] mem_rf_wdata;
-    logic [ 4:0] mem_rf_waddr;
-    logic        mem_rf_wen;
-    logic        mem_mem_en;
-    logic        mem_mem_wen;
-
-    logic [31:0] wb_rf_wdata;
-    logic [ 4:0] wb_rf_waddr;
-    logic        wb_rf_wen;
 
     logic if_busy;
     logic mem_busy;
+    logic exe_first_time;
     
     logic if_stall;
     logic if_flush;
@@ -183,6 +171,9 @@ module pipeline #(
         .rf_raddr_a_o(rf_raddr_a_o),
         .rf_raddr_b_o(rf_raddr_b_o),
 
+        // signal to controller
+        .exe_first_time_o(exe_first_time),
+
         // signals to EXE stage
         .exe_pc_o(id_exe_pc),
         .exe_instr_o(id_exe_instr),
@@ -224,6 +215,12 @@ module pipeline #(
         // stall signal and flush signal
         .stall_i(exe_stall),
         .flush_i(exe_flush),
+
+        // signals from forward unit
+        .exe_forward_alu_a_i(exe_forward_alu_a),
+        .exe_forward_alu_b_i(exe_forward_alu_b),
+        .exe_forward_alu_a_mux_i(exe_forward_alu_a_mux),
+        .exe_forward_alu_b_mux_i(exe_forward_alu_b_mux),
 
         .if_pc_o(exe_if_pc),
         .if_pc_mux_o(exe_if_pc_mux),     // 0: pc+4, 1: exe_pc
@@ -315,11 +312,13 @@ module pipeline #(
         .id_rf_raddr_b_i(id_rf_raddr_b),
 
         // signals from ID/EXE pipeline registers
-        .exe_rf_raddr_a_i(exe_rf_raddr_a),
-        .exe_rf_raddr_b_i(exe_rf_raddr_b),
-        .exe_mem_en_i(exe_mem_en),
-        .exe_mem_wen_i(exe_mem_wen),
-        .exe_rf_waddr_i(exe_rf_waddr),
+        .exe_pc_i(id_exe_pc),
+        .exe_rf_raddr_a_i(id_exe_rf_raddr_a),
+        .exe_rf_raddr_b_i(id_exe_rf_raddr_b),
+        .exe_mem_en_i(id_exe_mem_en),
+        .exe_mem_wen_i(id_exe_mem_wen),
+        .exe_rf_waddr_i(id_exe_rf_waddr),
+        .exe_first_time_i(exe_first_time),
 
         // signals from EXE/MEM pipeline registers
         .mem_rf_wdata_i(exe_mem_alu_result),
@@ -329,9 +328,9 @@ module pipeline #(
         .mem_mem_wen_i(exe_mem_mem_wen),
 
         // signals from MEM/WB pipeline registers
-        .wb_rf_wdata_i(wb_rf_wdata),
-        .wb_rf_waddr_i(wb_rf_waddr),
-        .wb_rf_wen_i(wb_rf_wen),
+        .wb_rf_wdata_i(mem_wb_rf_wdata),
+        .wb_rf_waddr_i(mem_wb_rf_waddr),
+        .wb_rf_wen_i(mem_wb_rf_wen),
         
         // memory busy signals (IF & MEM)
         .if_busy_i(if_busy),

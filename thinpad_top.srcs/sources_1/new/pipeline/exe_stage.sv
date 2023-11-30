@@ -22,6 +22,12 @@ module EXE_Stage (
     input wire stall_i,
     input wire flush_i,
 
+    // signals from forward unit
+    input wire [31:0] exe_forward_alu_a_i,
+    input wire [31:0] exe_forward_alu_b_i,
+    input wire exe_forward_alu_a_mux_i,
+    input wire exe_forward_alu_b_mux_i,
+
     output reg [31:0] if_pc_o,
     output reg        if_pc_mux_o,        // 0: pc+4, 1: exe_pc
 
@@ -133,15 +139,18 @@ module EXE_Stage (
     always_comb begin
         // if (stall_i == 1'b0) begin
         alu_op_o = exe_alu_op_i;
-        if (exe_alu_a_mux_i == 1'b0)
-            // rs1
-            alu_operand_a_o = exe_rf_rdata_a_i;
-        else
-            // pc
+        if (exe_alu_a_mux_i == 1'b1)
             alu_operand_a_o = exe_pc_i;
+        else if (exe_forward_alu_a_mux_i)
+            alu_operand_a_o = exe_forward_alu_a_i;
+        else
+            alu_operand_a_o = exe_rf_rdata_a_i;
+        
         if (exe_alu_b_mux_i == 1'b0)
             // imm
             alu_operand_b_o = exe_imm_i;
+        else if (exe_forward_alu_b_mux_i)
+            alu_operand_b_o = exe_forward_alu_b_i;
         else 
             // rs2
             alu_operand_b_o = exe_rf_rdata_b_i;
@@ -160,7 +169,7 @@ module EXE_Stage (
             mem_mem_wen_o <= 1'b0;
             mem_rf_wen_o <= 1'b0;
         end else begin
-            if (stall_i == 1'b0) begin
+            if (stall_i == 1'b0 && mem_pc_o !== exe_pc_i) begin
                 mem_pc_o         <= exe_pc_i;
                 mem_instr_o      <= exe_instr_i;
                 mem_alu_result_o <= alu_result_i;
