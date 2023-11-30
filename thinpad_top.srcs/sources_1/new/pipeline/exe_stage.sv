@@ -38,11 +38,7 @@ module EXE_Stage (
     output reg  [31:0] mem_alu_result_o,  // DM waddr
     output reg         mem_mem_en_o,      // if use DM
     output reg         mem_mem_wen_o,     // if write DM (0: read DM, 1: write DM)
-<<<<<<< thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
     output reg  [4:0] mem_rf_waddr_o,     // rf addr
-=======
-    output reg  [ 4:0] mem_rf_waddr_o,    // rf addr
->>>>>>> thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
     output reg         mem_rf_wen_o,      // if write back (rf)
 
     // signals to ALU
@@ -194,16 +190,9 @@ module EXE_Stage (
                         end
                     end
                     BNE: begin
-<<<<<<< thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
                         if (exe_rf_rdata_a_i !== exe_rf_rdata_b_i && alu_result_i != 0) begin
                             if_pc_mux_o <= 1'b1;
                             if_pc_o <= alu_result_i;    
-=======
-                        if (exe_rf_rdata_a_i != exe_rf_rdata_b_i) begin
-                            if_pc_mux_o <= 1'b1;
-                            if_pc_o <= alu_result_i;
-                            // if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;    
->>>>>>> thinpad_top.srcs/sources_1/new/pipeline/exe_stage.sv
                         end else begin
                             if_pc_mux_o <= 1'b0;
                             if_pc_o <= exe_pc_i;        
