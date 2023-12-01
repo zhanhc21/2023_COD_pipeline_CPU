@@ -20,7 +20,7 @@ module alu (
             4'd9  : logic_y = $signed(a) >>> mod_b;
             4'd10 : logic_y = (a << mod_b) | (a >> (16-mod_b));
             4'd11 : logic_y = a & ~b;
-            4'd12 : logic_y = a | (32'b1 << (b & 'd31));
+            4'd12 : logic_y = a | (32'h1 << (b & 32'h1f));
             4'd13 : logic_y = (a < b) ? a : b;
             default : logic_y = 32'd0;
         endcase
