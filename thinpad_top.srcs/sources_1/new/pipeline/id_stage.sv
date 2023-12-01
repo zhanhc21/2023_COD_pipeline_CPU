@@ -45,6 +45,7 @@ module ID_Stage (
     reg [ 6:0] opcode_reg;
     reg [ 4:0] rd_reg;
     reg [ 2:0] funct3_reg;
+    reg [ 6:0] funct6_reg;
     reg [ 4:0] rs1_reg;
     reg [ 4:0] rs2_reg;
 
@@ -66,7 +67,7 @@ module ID_Stage (
     );
 
     typedef enum logic [6:0] {
-        OPCODE_ADD_AND_OR_XOR_ANDN_SBSET = 7'b0110011,
+        OPCODE_ADD_AND_OR_XOR_ANDN_SBSET_MINU = 7'b0110011,
         OPCODE_ADDI_ANDI_ORI_SLLI_SRLI = 7'b0010011,
         OPCODE_AUIPC = 7'b0010111,
         OPCODE_BEQ_BNE = 7'b1100011,
@@ -88,18 +89,19 @@ module ID_Stage (
 
     typedef enum logic [3:0] {
         ALU_DEFAULT = 4'd0,
-        ALU_ADD   = 4'd1,
-        ALU_SUB   = 4'd2,
-        ALU_AND   = 4'd3,
-        ALU_OR    = 4'd4,
-        ALU_XOR   = 4'd5,
-        ALU_NOT   = 4'd6,
-        ALU_SLL   = 4'd7,
-        ALU_SRL   = 4'd8,
-        ALU_SRA   = 4'd9,
-        ALU_ROL   = 4'd10,
-        ALU_ANDN  = 4'd11,
-        ALU_SBSET = 4'd12
+        ALU_ADD = 4'd1,
+        ALU_SUB = 4'd2,
+        ALU_AND = 4'd3,
+        ALU_OR = 4'd4,
+        ALU_XOR = 4'd5,
+        ALU_NOT = 4'd6,
+        ALU_SLL = 4'd7,
+        ALU_SRL = 4'd8,
+        ALU_SRA = 4'd9,
+        ALU_ROL = 4'd10,
+        ALU_ANDN = 4'd11,
+        ALU_SBSET = 4'd12,
+        ALU_MINU = 4'd13
     } alu_op_type_t;
     
     always_comb begin
@@ -108,6 +110,7 @@ module ID_Stage (
         opcode_reg = id_instr_i[6:0];
         rd_reg = id_instr_i[11:7];
         funct3_reg = id_instr_i[14:12];
+        funct6_reg = id_instr_i[31:25];
         rs1_reg = id_instr_i[19:15];
         rs2_reg = id_instr_i[24:20];
 
@@ -115,25 +118,31 @@ module ID_Stage (
         rdata_b_reg = rf_rdata_b_i;
 
         case(opcode_reg)
-            OPCODE_ADD_AND_OR_XOR_ANDN_SBSET: begin
+            OPCODE_ADD_AND_OR_XOR_ANDN_SBSET_MINU: begin
                 inst_type_reg = TYPE_R;
                 case(funct3_reg)
                     3'b000: begin  // <instruction is ADD>
                         alu_op_reg = ALU_ADD;
                     end
-                    3'b111: begin  // <instruction is AND or ANDN or SBSET>
-                        if (id_instr_i[31:25] == 7'b0)
-                            alu_op_reg = ALU_AND;
-                        else if (id_instr_i[31:25] == 7'b0100000)
-                            alu_op_reg = ALU_ANDN;
-                        else // id_instr_i[31:25] == 7'b0010100
-                            alu_op_reg = ALU_SBSET;
+                    3'b111: begin  // <instruction is AND or ANDN>
+                        case (funct6_reg)
+                            7'b0000000: alu_op_reg = ALU_AND;
+                            7'b0100000: alu_op_reg = ALU_ANDN;
+                            default:    alu_op_reg = ALU_DEFAULT;
+                        endcase
                     end
-                    3'b110: begin  // <instruction is OR>
-                        alu_op_reg = ALU_OR;
+                    3'b110: begin  // <instruction is OR or MINU>
+                        case (funct6_reg)
+                            7'b0000101: alu_op_reg = ALU_MINU;
+                            7'b0000000: alu_op_reg = ALU_OR;
+                            default:    alu_op_reg = ALU_DEFAULT;
+                        endcase
                     end
                     3'b100: begin  // <instruction is XOR>
                         alu_op_reg = ALU_XOR;
+                    end
+                    3'b001: begin  // <instruction is SBSET>
+                        alu_op_reg = ALU_SBSET;
                     end
                     default: begin
                         alu_op_reg = ALU_DEFAULT;

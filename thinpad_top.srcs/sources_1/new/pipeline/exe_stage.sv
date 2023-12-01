@@ -15,7 +15,7 @@ module EXE_Stage (
     input wire [ 3:0] exe_alu_op_i,
     input wire        exe_alu_a_mux_i,    // 0: rs1, 1: pc
     input wire        exe_alu_b_mux_i,    // 0: imm, 1: rs2
-    input wire [4:0] exe_rf_waddr_i,
+    input wire [4:0]  exe_rf_waddr_i,
     input wire        exe_rf_wen_i,
 
     // stall signal and flush signal
@@ -38,7 +38,7 @@ module EXE_Stage (
     output reg  [31:0] mem_alu_result_o,  // DM waddr
     output reg         mem_mem_en_o,      // if use DM
     output reg         mem_mem_wen_o,     // if write DM (0: read DM, 1: write DM)
-    output reg  [4:0] mem_rf_waddr_o,     // rf addr
+    output reg  [4:0]  mem_rf_waddr_o,    // rf addr
     output reg         mem_rf_wen_o,      // if write back (rf)
 
     // signals to ALU
@@ -86,17 +86,21 @@ module EXE_Stage (
                 if (exe_instr_i[14:12] == 3'b000)
                     instr_type = ADD;
                 else if (exe_instr_i[14:12] == 3'b111) begin
-                    if (exe_instr_i[31:25] == 7'b0)
+                    if (exe_instr_i[31:25] == 7'b0000000)
                         instr_type = AND;
-                    else if (exe_instr_i[31:25] == 7'b0100000)
+                    else // (exe_instr_i[31:25] == 7'b0100000)
                         instr_type = ANDN;
-                    else // exe_instr_i[31:25] == 7'b0010100
-                        instr_type = SBSET;
+                end 
+                else if (exe_instr_i[14:12] == 3'b110) begin
+                    if (exe_instr_i[31:25] == 7'b0000101)
+                        instr_type = MINU;
+                    else
+                        instr_type = OR;
                 end
-                else if (exe_instr_i[14:12] == 3'b110)
-                    instr_type = OR;
-                else // (exe_instr_i[14:12] == 3'b100)
+                else if (exe_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
+                else // (exe_instr_i[14:12] == 3'b001)
+                    instr_type = SBSET;
             end
             7'b0010011: begin
                 if (exe_instr_i[14:12] == 3'b000)
@@ -175,9 +179,9 @@ module EXE_Stage (
 //                end // debug
                 mem_pc_o         <= exe_pc_i;
                 mem_instr_o      <= exe_instr_i;
-                mem_alu_result_o <= alu_result_i;
                 mem_mem_en_o     <= exe_mem_en_i;
                 mem_mem_wen_o    <= exe_mem_wen_i;
+                mem_alu_result_o <= alu_result_i;
                 mem_rf_waddr_o   <= exe_rf_waddr_i;
                 mem_rf_wen_o     <= exe_rf_wen_i;
 
@@ -237,7 +241,11 @@ module EXE_Stage (
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
                     end
+<<<<<<< HEAD
                     // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset
+=======
+                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu
+>>>>>>> FixExtension
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  

@@ -36,15 +36,6 @@ module MEM_Stage (
     output reg        wb_rf_wen_o    // if write back (WB)
 );
 
-    logic mem_finish;
-    always_ff @ (posedge clk_i) begin
-        past_instr_type <= instr_type;
-        if (!mem_mem_en_i | past_instr_type != instr_type)
-            mem_finish <= 1'b0;
-        if (wb_ack_i)
-            mem_finish <= 1'b1;
-    end
-
     logic [6:0]  opcode;
     typedef enum logic [4:0] {
         ADD   = 0,
@@ -73,6 +64,15 @@ module MEM_Stage (
     } op_type;
     op_type instr_type, past_instr_type;
 
+    logic mem_finish;
+    always_ff @ (posedge clk_i) begin
+        past_instr_type <= instr_type;
+        if (!mem_mem_en_i | past_instr_type != instr_type)
+            mem_finish <= 1'b0;
+        if (wb_ack_i)
+            mem_finish <= 1'b1;
+    end
+
     // inst decode
     always_comb begin
         opcode = mem_instr_i[6:0];
@@ -80,12 +80,22 @@ module MEM_Stage (
             7'b0110011: begin
                 if (mem_instr_i[14:12] == 3'b000)
                     instr_type = ADD;
-                else if (mem_instr_i[14:12] == 3'b111)
-                    instr_type = AND;
-                else if (mem_instr_i[14:12] == 3'b110)
-                    instr_type = OR;
-                else // (mem_instr_i[14:12] == 3'b100)
+                else if (mem_instr_i[14:12] == 3'b111) begin
+                    if (mem_instr_i[31:25] == 7'b0000000)
+                        instr_type = AND;
+                    else // (mem_instr_i[31:25] == 7'b0100000)
+                        instr_type = ANDN;
+                end 
+                else if (mem_instr_i[14:12] == 3'b110) begin
+                    if (mem_instr_i[31:25] == 7'b0000101)
+                        instr_type = MINU;
+                    else
+                        instr_type = OR;
+                end
+                else if (mem_instr_i[14:12] == 3'b100)
                     instr_type = XOR;
+                else // (mem_instr_i[14:12] == 3'b001)
+                    instr_type = SBSET;
             end
             7'b0010011: begin
                 if (mem_instr_i[14:12] == 3'b000)
