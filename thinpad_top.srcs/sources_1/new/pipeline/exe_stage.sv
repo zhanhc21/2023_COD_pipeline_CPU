@@ -241,11 +241,7 @@ module EXE_Stage (
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
                     end
-<<<<<<< HEAD
-                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset
-=======
                     // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu
->>>>>>> FixExtension
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  
