@@ -122,6 +122,11 @@ module pipeline #(
     logic [31:0] exe_forward_alu_b;
     logic exe_forward_alu_a_mux;
     logic exe_forward_alu_b_mux;
+    logic mem_finish;
+    
+    logic [ 4:0] rf_waddr_controller;
+    logic [31:0] rf_wdata_controller;
+    logic rf_wen_controller;
 
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
@@ -221,6 +226,7 @@ module pipeline #(
         .exe_forward_alu_b_i(exe_forward_alu_b),
         .exe_forward_alu_a_mux_i(exe_forward_alu_a_mux),
         .exe_forward_alu_b_mux_i(exe_forward_alu_b_mux),
+        .mem_finish_i(mem_finish),
 
         .if_pc_o(exe_if_pc),
         .if_pc_mux_o(exe_if_pc_mux),     // 0: pc+4, 1: exe_pc
@@ -268,6 +274,7 @@ module pipeline #(
         .mem_rf_wen_i(exe_mem_rf_wen),
 
         // stall signal and flush signal
+        .mem_finish_o(mem_finish),
         .busy_o(mem_busy),
         .stall_i(mem_stall),
         .flush_i(mem_flush),
@@ -299,7 +306,12 @@ module pipeline #(
         // signals to regfile
         .rf_wdata_o(rf_wdata_o),
         .rf_waddr_o(rf_waddr_o),
-        .rf_wen_o(rf_wen_o)
+        .rf_wen_o(rf_wen_o),
+
+        // signals to controller
+        .rf_wdata_controller_o(rf_wdata_controller),
+        .rf_waddr_controller_o(rf_waddr_controller),
+        .rf_wen_controller_o(rf_wen_controller)
     );
 
     /* ========== Pipeline Controller ========== */
@@ -331,8 +343,14 @@ module pipeline #(
         .wb_rf_wdata_i(mem_wb_rf_wdata),
         .wb_rf_waddr_i(mem_wb_rf_waddr),
         .wb_rf_wen_i(mem_wb_rf_wen),
+
+        // signals from WB
+        .rf_wdata_controller_i(rf_wdata_controller),
+        .rf_waddr_controller_i(rf_waddr_controller),
+        .rf_wen_controller_i(rf_wen_controller),
         
         // memory busy signals (IF & MEM)
+        .mem_finish_i(mem_finish),
         .if_busy_i(if_busy),
         .mem_busy_i(mem_busy),
 

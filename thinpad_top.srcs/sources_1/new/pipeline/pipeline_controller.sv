@@ -28,9 +28,15 @@ module pipeline_controller(
     input wire        wb_rf_wen_i,
     input wire exe_if_pc_mux_i,
 
+    // signals from WB
+    output reg [31:0] rf_wdata_controller_i,
+    output reg [4:0] rf_waddr_controller_i,
+    output reg        rf_wen_controller_i,
+
     // wishbone busy signals
     input wire if_busy_i,
     input wire mem_busy_i,
+    input wire mem_finish_i,
 
     // stall and flush signals
     output reg if_stall_o,
@@ -93,7 +99,7 @@ module pipeline_controller(
         exe_forward_alu_b_mux_o = 1'b0;
 
         // ALU@EXE/MEM->ALU
-        if (exe_first_time_i) begin
+        if (exe_first_time_i || mem_finish_i) begin
             if (mem_rf_wen_i) begin
                 if (mem_rf_waddr_i == exe_rf_raddr_a_i && mem_rf_waddr_i != 0) begin
                     exe_forward_alu_a_o = mem_rf_wdata_i;
@@ -112,6 +118,17 @@ module pipeline_controller(
                 end
                 if(wb_rf_waddr_i == exe_rf_raddr_b_i) begin
                     exe_forward_alu_b_o = wb_rf_wdata_i;
+                    exe_forward_alu_b_mux_o = 1'b1;
+                end
+            end
+            // DM@WB->ALU
+            if (rf_wen_controller_i) begin
+                if(rf_waddr_controller_i == exe_rf_raddr_a_i) begin
+                    exe_forward_alu_a_o = rf_wdata_controller_i;
+                    exe_forward_alu_a_mux_o = 1'b1;
+                end
+                if(rf_waddr_controller_i == exe_rf_raddr_b_i) begin
+                    exe_forward_alu_b_o = rf_wdata_controller_i;
                     exe_forward_alu_b_mux_o = 1'b1;
                 end
             end

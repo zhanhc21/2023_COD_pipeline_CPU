@@ -27,6 +27,7 @@ module EXE_Stage (
     input wire [31:0] exe_forward_alu_b_i,
     input wire exe_forward_alu_a_mux_i,
     input wire exe_forward_alu_b_mux_i,
+    input wire mem_finish_i,
 
     output reg [31:0] if_pc_o,
     output reg        if_pc_mux_o,        // 0: pc+4, 1: exe_pc
@@ -173,10 +174,11 @@ module EXE_Stage (
             mem_mem_wen_o <= 1'b0;
             mem_rf_wen_o <= 1'b0;
         end else begin
-            if (stall_i == 1'b0 && (mem_pc_o !== exe_pc_i || mem_instr_o !== exe_instr_i)) begin
-//                if (exe_pc_i == 32'h80000424) begin
-//                    mem_pc_o <= mem_pc_o;
-//                end // debug
+            if (stall_i == 1'b0 && 
+            (mem_pc_o !== exe_pc_i || mem_instr_o !== exe_instr_i )) begin
+                if (exe_pc_i == 32'h8000039c) begin
+                    mem_pc_o <= mem_pc_o;
+                end // debug
                 mem_pc_o         <= exe_pc_i;
                 mem_instr_o      <= exe_instr_i;
                 mem_mem_en_o     <= exe_mem_en_i;
