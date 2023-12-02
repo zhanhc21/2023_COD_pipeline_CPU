@@ -144,6 +144,13 @@ module MEM_Stage (
             wb_we_o     <= 1'b0;
             wb_sel_o    <= 4'b0;
             wb_rf_wen_o <= 1'b0;
+            wb_pc_o <= 32'h0;
+            wb_instr_o <= 32'h0;
+            wb_rf_waddr_o <= 5'b0;
+            wb_rf_wdata_o <= 32'h0;
+            wb_rf_wen_o <= 1'b0;
+            wb_addr_o <= 32'h0;
+            wb_data_o <= 32'h0;
             busy_o      <= 1'b0;
         end else begin
             wb_pc_o <= mem_pc_i;

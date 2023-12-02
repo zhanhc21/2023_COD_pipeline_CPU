@@ -32,7 +32,7 @@ module ID_Stage (
     output reg [3:0] exe_alu_op_o,
     output reg        exe_alu_a_mux_o,  // 0: rs1, 1: pc
     output reg        exe_alu_b_mux_o,  // 0: imm, 1: rs2
-    output reg [31:0] exe_rf_waddr_o,
+    output reg [4:0] exe_rf_waddr_o,
     output reg        exe_rf_wen_o  // 1: enable
 );
     // TODO: stall signal and flush signal

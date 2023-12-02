@@ -21,7 +21,6 @@ module pipeline #(
     output reg [ADDR_WIDTH-1:0] wbm_addr_dm,
     output reg [DATA_WIDTH-1:0] wbm_data_o_dm,
     output reg [DATA_WIDTH-1:0] wbm_data_i_dm,
-    input wire [DATA_WIDTH-1:0] wbm_data_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
     output reg wbm_we_dm
 );
@@ -97,12 +96,6 @@ module pipeline #(
     logic        mem_wb_rf_wen;
 
     // pipeline controller signals
-    logic [ 4:0] id_rf_raddr_a;
-    logic [ 4:0] id_rf_raddr_b;
-
-    logic [ 4:0] exe_rf_raddr_a;
-    logic [ 4:0] exe_rf_raddr_b;
-
     logic if_busy;
     logic mem_busy;
     logic exe_first_time;
@@ -319,10 +312,6 @@ module pipeline #(
         .clk_i(clk_i),
         .rst_i(rst_i),
 
-        // signals from ID stage
-        .id_rf_raddr_a_i(id_rf_raddr_a),
-        .id_rf_raddr_b_i(id_rf_raddr_b),
-
         // signals from ID/EXE pipeline registers
         .exe_pc_i(id_exe_pc),
         .exe_rf_raddr_a_i(id_exe_rf_raddr_a),
@@ -343,6 +332,7 @@ module pipeline #(
         .wb_rf_wdata_i(mem_wb_rf_wdata),
         .wb_rf_waddr_i(mem_wb_rf_waddr),
         .wb_rf_wen_i(mem_wb_rf_wen),
+        .exe_if_pc_mux_i(exe_if_pc_mux),
 
         // signals from WB
         .rf_wdata_controller_i(rf_wdata_controller),

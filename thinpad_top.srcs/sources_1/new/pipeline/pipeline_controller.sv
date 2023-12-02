@@ -2,10 +2,6 @@ module pipeline_controller(
     input wire clk_i,
     input wire rst_i,
 
-    // signals from ID stage
-    input wire [4:0] id_rf_raddr_a_i,
-    input wire [4:0] id_rf_raddr_b_i,
-
     // signals from ID/EXE pipeline registers
     input wire [31:0] exe_pc_i,
     input wire [4:0] exe_rf_raddr_a_i,
@@ -29,9 +25,9 @@ module pipeline_controller(
     input wire exe_if_pc_mux_i,
 
     // signals from WB
-    output reg [31:0] rf_wdata_controller_i,
-    output reg [4:0] rf_waddr_controller_i,
-    output reg        rf_wen_controller_i,
+    input wire [31:0] rf_wdata_controller_i,
+    input wire [4:0] rf_waddr_controller_i,
+    input wire        rf_wen_controller_i,
 
     // wishbone busy signals
     input wire if_busy_i,
@@ -58,7 +54,6 @@ module pipeline_controller(
 );
 
     logic m_busy;  // if memory busy (IF/MEM)
-    reg [31:0] exe_pc_i_reg;
 
     assign m_busy = if_busy_i | mem_busy_i;
 
@@ -81,14 +76,16 @@ module pipeline_controller(
 //            id_stall_o = 1'b1;
 //            exe_stall_o = 1'b1;
         end else if (exe_if_pc_mux_i == 1'b1) begin  // branch and jump, flush ID & EXE
+//            if_flush_o = 1'b1;
             id_flush_o = 1'b1;
             exe_flush_o = 1'b1;
-        end else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
-            (exe_rf_waddr_i == id_rf_raddr_a_i || exe_rf_waddr_i == id_rf_raddr_b_i)) begin
-            if_stall_o = 1'b1;
-            id_stall_o = 1'b1;
-            exe_stall_o = 1'b1;
-        end
+        end 
+        // else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
+        //     (exe_rf_waddr_i == id_rf_raddr_a_i || exe_rf_waddr_i == id_rf_raddr_b_i)) begin
+        //     if_stall_o = 1'b1;
+        //     id_stall_o = 1'b1;
+        //     exe_stall_o = 1'b1;
+        // end
     end
 
     // data hazard
