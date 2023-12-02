@@ -20,7 +20,7 @@ module pipeline #(
     input wire wbm_ack_dm,
     output reg [ADDR_WIDTH-1:0] wbm_addr_dm,
     output reg [DATA_WIDTH-1:0] wbm_data_o_dm,
-    output reg [DATA_WIDTH-1:0] wbm_data_i_dm,
+    input reg [DATA_WIDTH-1:0] wbm_data_i_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
     output reg wbm_we_dm
 );
@@ -52,17 +52,17 @@ module pipeline #(
     // ID signals
     logic [31:0] id_exe_pc;
     logic [31:0] id_exe_instr;
-    logic [ 4:0] id_exe_rf_raddr_a;
-    logic [ 4:0] id_exe_rf_raddr_b;
+    logic [4:0] id_exe_rf_raddr_a;
+    logic [4:0] id_exe_rf_raddr_b;
     logic [31:0] id_exe_rf_rdata_a;
     logic [31:0] id_exe_rf_rdata_b;
     logic [31:0] id_exe_imm;
     logic        id_exe_mem_en;
     logic        id_exe_mem_wen;
-    logic [ 3:0] id_exe_alu_op;
+    logic [3:0] id_exe_alu_op;
     logic        id_exe_alu_a_mux;
     logic        id_exe_alu_b_mux;
-    logic [ 4:0] id_exe_rf_waddr;
+    logic [4:0] id_exe_rf_waddr;
     logic        id_exe_rf_wen;
 
     // EXE signals
@@ -72,14 +72,14 @@ module pipeline #(
     logic        exe_mem_mem_en;
     logic        exe_mem_mem_wen;
     logic [31:0] exe_mem_alu_result;
-    logic [ 4:0] exe_mem_rf_waddr;
+    logic [4:0] exe_mem_rf_waddr;
     logic        exe_mem_rf_wen;
     logic [31:0] exe_if_pc;
     logic        exe_if_pc_mux;
     logic [31:0] alu_result;
     logic [31:0] alu_operand_a;
     logic [31:0] alu_operand_b;
-    logic [ 3:0] alu_op;
+    logic [3:0] alu_op;
 
     alu u_alu (
         .a  (alu_operand_a),
@@ -92,7 +92,7 @@ module pipeline #(
     logic [31:0] mem_wb_pc;
     logic [31:0] mem_wb_instr;
     logic [31:0] mem_wb_rf_wdata;
-    logic [ 4:0] mem_wb_rf_waddr;
+    logic [4:0] mem_wb_rf_waddr;
     logic        mem_wb_rf_wen;
 
     // pipeline controller signals
@@ -117,7 +117,7 @@ module pipeline #(
     logic exe_forward_alu_b_mux;
     logic mem_finish;
     
-    logic [ 4:0] rf_waddr_controller;
+    logic [4:0] rf_waddr_controller;
     logic [31:0] rf_wdata_controller;
     logic rf_wen_controller;
 
@@ -127,7 +127,6 @@ module pipeline #(
         .rst_i(rst_i),
 
         // stall signal and flush signal
-        .busy_i(if_busy),
         .stall_i(if_stall),
         .flush_i(if_flush),
 
@@ -341,7 +340,6 @@ module pipeline #(
         
         // memory busy signals (IF & MEM)
         .mem_finish_i(mem_finish),
-        .if_busy_i(if_busy),
         .mem_busy_i(mem_busy),
 
         // stall and flush signals

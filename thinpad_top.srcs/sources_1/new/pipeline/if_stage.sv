@@ -6,7 +6,6 @@ module IF_Stage #(
     input wire rst_i,
 
     // stall signal and flush signal
-    input wire busy_i,
     input wire stall_i,
     input wire flush_i,
 

@@ -180,7 +180,7 @@ module EXE_Stage (
             mem_rf_waddr_o <= 5'b0;
         end else begin
             if (stall_i == 1'b0 && 
-            (mem_pc_o !== exe_pc_i || mem_instr_o !== exe_instr_i )) begin
+            (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i )) begin
                 if (exe_pc_i == 32'h80000438) begin
                     mem_pc_o <= mem_pc_o;
                 end // debug
@@ -204,7 +204,7 @@ module EXE_Stage (
                         end
                     end
                     BNE: begin
-                        if (exe_rf_rdata_a_i !== exe_rf_rdata_b_i && alu_result_i != 0) begin
+                        if (exe_rf_rdata_a_i != exe_rf_rdata_b_i && alu_result_i != 0) begin
                             if_pc_mux_o <= 1'b1;
                             if_pc_o <= alu_result_i; 
                         end else begin

@@ -177,7 +177,7 @@ module MEM_Stage (
                     wb_data_o <= 32'b0;
                     wb_sel_o  <= 4'b1111;
                     // write back to regfile
-                    if (wb_ack_i && wb_addr_o !== 32'h0) begin
+                    if (wb_ack_i && wb_addr_o != 32'h0) begin
                         wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end

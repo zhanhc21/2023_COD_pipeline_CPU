@@ -31,7 +31,7 @@ module sram_controller #(
     output reg [SRAM_BYTES-1:0] sram_be_n
 );
 
-  // TODO: 实现 SRAM 控制器
+  // TODO: 实现 SRAM 控制�?
     typedef enum logic [2:0] {
         STATE_IDLE = 0,
         STATE_READ = 1,
@@ -118,6 +118,9 @@ module sram_controller #(
                 end
                 STATE_DONE: begin
                     wb_ack_o <= 1'b0;
+                    state <= STATE_IDLE;
+                end
+                default:begin
                     state <= STATE_IDLE;
                 end
             endcase

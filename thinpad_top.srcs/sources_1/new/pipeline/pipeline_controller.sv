@@ -30,7 +30,6 @@ module pipeline_controller(
     input wire        rf_wen_controller_i,
 
     // wishbone busy signals
-    input wire if_busy_i,
     input wire mem_busy_i,
     input wire mem_finish_i,
 
@@ -52,12 +51,6 @@ module pipeline_controller(
     output reg exe_forward_alu_a_mux_o,
     output reg exe_forward_alu_b_mux_o
 );
-
-    logic m_busy;  // if memory busy (IF/MEM)
-
-    assign m_busy = if_busy_i | mem_busy_i;
-
-
     // structure(memory) hazard
     always_comb begin
         if_stall_o = 1'b0;
