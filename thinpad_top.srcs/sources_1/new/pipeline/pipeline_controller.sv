@@ -78,7 +78,7 @@ module pipeline_controller(
         end else if (exe_if_pc_mux_i == 1'b1) begin  // branch and jump, flush ID & EXE
 //            if_flush_o = 1'b1;
             id_flush_o = 1'b1;
-            exe_flush_o = 1'b1;
+//            exe_flush_o = 1'b1;
         end 
         // else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
         //     (exe_rf_waddr_i == id_rf_raddr_a_i || exe_rf_waddr_i == id_rf_raddr_b_i)) begin

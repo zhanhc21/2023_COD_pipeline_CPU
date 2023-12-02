@@ -64,7 +64,7 @@ module IF_Stage #(
             wb_sel_o <= 4'b0;
             wb_we_o <= 1'b0;
 
-            pc_reg <= 32'b0;
+            pc_reg <= pc_reg;
             pc_now_reg <= 32'b0;
             inst_reg <= 32'b0;
         end else begin
@@ -74,11 +74,14 @@ module IF_Stage #(
             wb_sel_o <= 4'b1111;
             if (pc_mux_i == 1) begin
                 wb_addr_o <= pc_from_exe_i;
+                pc_reg <= pc_from_exe_i;
+                pc_now_reg <= 32'h0;
+                inst_reg <= 32'h0;
             end else begin
                 wb_addr_o <= pc_reg;
             end
 
-            if (wb_ack_i) begin
+            if (wb_ack_i && (!pc_mux_i || wb_addr_o == pc_from_exe_i)) begin
                 wb_cyc_o <= 1'b0;
                 wb_stb_o <= 1'b0;
                 wb_we_o <= 1'b0;

@@ -181,7 +181,7 @@ module EXE_Stage (
         end else begin
             if (stall_i == 1'b0 && 
             (mem_pc_o !== exe_pc_i || mem_instr_o !== exe_instr_i )) begin
-                if (exe_pc_i == 32'h8000001c) begin
+                if (exe_pc_i == 32'h80000438) begin
                     mem_pc_o <= mem_pc_o;
                 end // debug
                 mem_pc_o         <= exe_pc_i;
@@ -242,8 +242,12 @@ module EXE_Stage (
                         mem_alu_result_o <= exe_pc_i + 32'd4;
                     end
                     NOP: begin
-                        if_pc_mux_o <= 1'b0;
-                        if_pc_o <= exe_pc_i;
+//                        if (if_pc_mux_o == 1'b1) 
+//                            if_pc_mux_o <= 1'b1;
+//                        else
+//                            if_pc_mux_o <= 1'b0;
+                        if_pc_mux_o <= 0;
+                        if_pc_o <= if_pc_o;
                         mem_mem_en_o <= 1'b0;
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
