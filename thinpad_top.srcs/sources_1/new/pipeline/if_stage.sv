@@ -87,13 +87,8 @@ module IF_Stage #(
                 wb_sel_o <= 4'b0000;
                 if (wb_data_i) begin
                     inst_reg <= wb_data_i;
-                    if (pc_mux_i == 1) begin
-                        pc_now_reg <= pc_from_exe_i;
-                        pc_reg <= pc_from_exe_i + 32'h00000004;
-                    end else begin
-                        pc_now_reg <= pc_reg;
-                        pc_reg <= pc_reg + 32'h00000004;
-                    end
+                    pc_now_reg <= pc_reg;
+                    pc_reg <= pc_reg + 32'h00000004;
                 end else begin
                     pc_now_reg <= pc_now_reg;
                     pc_reg <= pc_reg;
@@ -106,8 +101,7 @@ module IF_Stage #(
         if (rst_i) begin
             id_pc_o <= 32'h80000000;
             id_instr_o <= 32'b0;
-        end
-        else begin
+        end else begin
             id_pc_o <= pc_now_reg;
             id_instr_o <= inst_reg;
         end

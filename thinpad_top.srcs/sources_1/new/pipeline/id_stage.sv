@@ -306,10 +306,11 @@ module ID_Stage (
             exe_rf_waddr_o <= 5'b0;
             exe_rf_wen_o <= 1'b0;
         end else begin
-            if (exe_pc_o != pc_reg)
+            if (exe_pc_o != pc_reg) begin
                 exe_first_time_o <= 1'b1;
-            else 
+            end else begin
                 exe_first_time_o <= 1'b0;
+            end
             exe_pc_o <= pc_reg;
             exe_instr_o <= inst_reg;
             exe_rf_raddr_a_o <= rs1_reg;
@@ -322,7 +323,7 @@ module ID_Stage (
             exe_alu_op_o <= alu_op_reg;
             exe_alu_a_mux_o <= alu_a_mux_reg;
             exe_alu_b_mux_o <= alu_b_mux_reg;
-            exe_rf_waddr_o <= { 27'b0, rd_reg};
+            exe_rf_waddr_o <= rd_reg;
             exe_rf_wen_o <= rf_wen_reg;
         end
     end
