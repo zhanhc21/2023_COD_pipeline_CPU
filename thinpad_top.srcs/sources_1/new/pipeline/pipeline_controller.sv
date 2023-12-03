@@ -93,34 +93,33 @@ module pipeline_controller(
         // ALU@EXE/MEM->ALU
         if (exe_first_time_i) begin
             if (mem_rf_wen_i) begin
-                // 强行用非L type判断
-                if (mem_rf_waddr_i == exe_rf_raddr_a_i && mem_rf_wdata_i && mem_rf_waddr_i != 0 && exe_mem_instr_i[6:0] != 7'b0000011) begin
+                if (mem_rf_waddr_i == exe_rf_raddr_a_i && !$isunknown(mem_rf_wdata_i) && mem_rf_waddr_i != 0) begin
                     exe_forward_alu_a_o = mem_rf_wdata_i;
                     exe_forward_alu_a_mux_o = 1'b1;
                 end
-                if (mem_rf_waddr_i == exe_rf_raddr_b_i && mem_pc_i != exe_pc_i && mem_rf_waddr_i != 0) begin
+                if (mem_rf_waddr_i == exe_rf_raddr_b_i && !$isunknown(mem_rf_wdata_i) && mem_rf_waddr_i != 0) begin
                     exe_forward_alu_b_o = mem_rf_wdata_i;
                     exe_forward_alu_b_mux_o = 1'b1;
                 end
             end
             // ALU@MEM/WB->ALU
             if (wb_rf_wen_i) begin
-                if(wb_rf_waddr_i == exe_rf_raddr_a_i && wb_rf_wdata_i) begin
+                if(wb_rf_waddr_i == exe_rf_raddr_a_i && !$isunknown(wb_rf_wdata_i)) begin
                     exe_forward_alu_a_o = wb_rf_wdata_i;
                     exe_forward_alu_a_mux_o = 1'b1;
                 end
-                if(wb_rf_waddr_i == exe_rf_raddr_b_i && wb_rf_wdata_i) begin
+                if(wb_rf_waddr_i == exe_rf_raddr_b_i && !$isunknown(wb_rf_wdata_i)) begin
                     exe_forward_alu_b_o = wb_rf_wdata_i;
                     exe_forward_alu_b_mux_o = 1'b1;
                 end
             end
             // DM@WB->ALU
             if (rf_wen_controller_i) begin
-                if(rf_waddr_controller_i == exe_rf_raddr_a_i && rf_wdata_controller_i) begin
+                if(rf_waddr_controller_i == exe_rf_raddr_a_i && !$isunknown(rf_wdata_controller_i) && rf_waddr_controller_i != 0) begin
                     exe_forward_alu_a_o = rf_wdata_controller_i;
                     exe_forward_alu_a_mux_o = 1'b1;
                 end
-                if(rf_waddr_controller_i == exe_rf_raddr_b_i && rf_wdata_controller_i) begin
+                if(rf_waddr_controller_i == exe_rf_raddr_b_i && !$isunknown(rf_wdata_controller_i) && rf_waddr_controller_i != 0) begin
                     exe_forward_alu_b_o = rf_wdata_controller_i;
                     exe_forward_alu_b_mux_o = 1'b1;
                 end

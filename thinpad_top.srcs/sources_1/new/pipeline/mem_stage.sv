@@ -64,15 +64,15 @@ module MEM_Stage (
         NOP   = 22
     } op_type;
     op_type instr_type, past_instr_type;
-    
+    logic [31:0] past_mem_instr_i;
     logic mem_finish;
     assign mem_finish_o = mem_finish;
     always_ff @ (posedge clk_i) begin
         if (rst_i)
             mem_finish <= 1'b1;
         else begin
-            past_instr_type <= instr_type;
-            if (!mem_mem_en_i | past_instr_type != instr_type)
+            past_mem_instr_i <= mem_instr_i;
+            if (!mem_mem_en_i | past_mem_instr_i != mem_instr_i)
                 mem_finish <= 1'b0;
             if (wb_ack_i)
                 mem_finish <= 1'b1;
@@ -172,21 +172,34 @@ module MEM_Stage (
                     wb_we_o   <= 1'b1;
                     wb_data_o <= mem_mem_wdata_i;
                     if (instr_type == SB)
-                        wb_sel_o <= 4'b0001;
+                        case (mem_alu_result_i[1:0])
+                            2'b00: wb_sel_o <= 4'b0001;
+                            2'b01: wb_sel_o <= 4'b0010;
+                            2'b10: wb_sel_o <= 4'b0100;
+                            2'b11: wb_sel_o <= 4'b1000;
+                        endcase
                     else
                         wb_sel_o <= 4'b1111;
                 end else begin
                     // L type: read ram
                     wb_we_o   <= 1'b0;
                     wb_data_o <= 32'b0;
-                    wb_sel_o  <= 4'b1111;
+                    wb_sel_o <= 4'b1111;
                     // write back to regfile
                     if (wb_ack_i && wb_addr_o != 32'h0) begin
                         wb_cyc_o  <= 1'b0;
                         wb_stb_o  <= 1'b0;
                         wb_we_o   <= 1'b0;
                         busy_o    <= 1'b0;
-                        wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
+                        if (instr_type == LW)
+                            wb_rf_wdata_o <= wb_data_i;
+                        else case (mem_alu_result_i[1:0])
+                            2'b00: wb_rf_wdata_o <= $signed(wb_data_i[ 7: 0]);
+                            2'b01: wb_rf_wdata_o <= $signed(wb_data_i[15: 8]);
+                            2'b10: wb_rf_wdata_o <= $signed(wb_data_i[23:16]);
+                            2'b11: wb_rf_wdata_o <= $signed(wb_data_i[31:24]);
+                        endcase
+//                        wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end
                 // wirte or read ram finished
