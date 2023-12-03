@@ -45,6 +45,13 @@ module pipeline #(
         .rdata_b(rf_rdata_b_i)
     ); 
 
+    // TODO
+    // csr regfile signals
+    csr_regFile u_csr_regFile (
+        .clk_i(clk_i)
+        .rst_i(rst_i)
+    );
+
     // IF signals
     logic [31:0] if_id_pc;
     logic [31:0] if_id_instr;

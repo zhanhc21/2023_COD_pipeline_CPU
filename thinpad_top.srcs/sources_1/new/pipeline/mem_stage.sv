@@ -63,7 +63,8 @@ module MEM_Stage (
         MINU  = 21,
         NOP   = 22
     } op_type;
-    op_type instr_type, past_instr_type;
+    op_type instr_type;
+
     logic [31:0] past_mem_instr_i;
     logic mem_finish;
     assign mem_finish_o = mem_finish;
@@ -199,7 +200,6 @@ module MEM_Stage (
                             2'b10: wb_rf_wdata_o <= $signed(wb_data_i[23:16]);
                             2'b11: wb_rf_wdata_o <= $signed(wb_data_i[31:24]);
                         endcase
-//                        wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end
                 // wirte or read ram finished
