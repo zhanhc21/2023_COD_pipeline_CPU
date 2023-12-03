@@ -170,29 +170,11 @@ module MEM_Stage (
                 if (mem_mem_wen_i) begin
                     // S type: write ram
                     wb_we_o   <= 1'b1;
-                    if (instr_type == SB) begin
-                        case(mem_alu_result_i[1:0])
-                            2'b00: begin
-                                wb_data_o <= mem_mem_wdata_i;
-                                wb_sel_o <= 4'b0001;
-                            end
-                            2'b01: begin
-                                wb_data_o <= (mem_mem_wdata_i << 8);
-                                wb_sel_o <= 4'b0010;
-                            end
-                            2'b10: begin
-                                wb_data_o <= (mem_mem_wdata_i << 16);
-                                wb_sel_o <= 4'b0100;
-                            end
-                            2'b11: begin
-                                wb_data_o <= (mem_mem_wdata_i << 24);
-                                wb_sel_o <= 4'b1000;
-                            end
-                        endcase
-                    end else begin
-                        wb_data_o <= mem_mem_wdata_i;
+                    wb_data_o <= mem_mem_wdata_i;
+                    if (instr_type == SB)
+                        wb_sel_o <= 4'b0001;
+                    else
                         wb_sel_o <= 4'b1111;
-                    end
                 end else begin
                     // L type: read ram
                     wb_we_o   <= 1'b0;
