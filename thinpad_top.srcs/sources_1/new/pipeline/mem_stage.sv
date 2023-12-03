@@ -74,10 +74,8 @@ module MEM_Stage (
             past_instr_type <= instr_type;
             if (!mem_mem_en_i | past_instr_type != instr_type)
                 mem_finish <= 1'b0;
-            else if (wb_ack_i)
+            if (wb_ack_i)
                 mem_finish <= 1'b1;
-            else
-                mem_finish <= mem_finish;
         end
     end
 
