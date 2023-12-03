@@ -14,10 +14,11 @@ module pipeline_controller(
     // signals from EXE/MEM pipeline registers
     input wire [31:0] mem_pc_i,
     input wire [31:0] mem_rf_wdata_i,
-    input wire [4:0] mem_rf_waddr_i,
+    input wire [4:0]  mem_rf_waddr_i,
     input wire        mem_rf_wen_i,
     input wire        mem_mem_en_i,
     input wire        mem_mem_wen_i,
+    input wire [31:0] exe_mem_instr_i,
 
     // signals from MEM/WB pipeline registers
     input wire [31:0] wb_rf_wdata_i,
@@ -92,7 +93,8 @@ module pipeline_controller(
         // ALU@EXE/MEM->ALU
         if (exe_first_time_i) begin
             if (mem_rf_wen_i) begin
-                if (mem_rf_waddr_i == exe_rf_raddr_a_i && mem_rf_wdata_i && mem_rf_waddr_i != 0) begin
+                // 强行用非L type判断
+                if (mem_rf_waddr_i == exe_rf_raddr_a_i && mem_rf_wdata_i && mem_rf_waddr_i != 0 && exe_mem_instr_i[6:0] != 7'b0000011) begin
                     exe_forward_alu_a_o = mem_rf_wdata_i;
                     exe_forward_alu_a_mux_o = 1'b1;
                 end

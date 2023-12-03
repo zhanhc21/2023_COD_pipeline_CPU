@@ -20,7 +20,7 @@ module MEM_Stage (
     input wire        mem_mem_en_i,
     input wire        mem_mem_wen_i,     // if write DM (0: read DM, 1: write DM)
     input wire [31:0] mem_alu_result_i,
-    input wire [4:0] mem_rf_waddr_i,
+    input wire [4:0]  mem_rf_waddr_i,
     input wire        mem_rf_wen_i,
 
     // stall signal and flush signal
@@ -33,7 +33,7 @@ module MEM_Stage (
     output reg [31:0] wb_pc_o,
     output reg [31:0] wb_instr_o,
     output reg [31:0] wb_rf_wdata_o, // WB data
-    output reg [4:0] wb_rf_waddr_o, // WB adddr
+    output reg [4:0]  wb_rf_waddr_o, // WB adddr
     output reg        wb_rf_wen_o    // if write back (WB)
 );
 
@@ -189,7 +189,7 @@ module MEM_Stage (
                         wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end
-                // wirte or read ram finish
+                // wirte or read ram finished
                 if (mem_finish) begin
                     wb_cyc_o  <= 1'b0;
                     wb_stb_o  <= 1'b0;

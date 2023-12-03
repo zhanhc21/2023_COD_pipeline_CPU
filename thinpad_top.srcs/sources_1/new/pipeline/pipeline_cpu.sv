@@ -92,7 +92,7 @@ module pipeline #(
     logic [31:0] mem_wb_pc;
     logic [31:0] mem_wb_instr;
     logic [31:0] mem_wb_rf_wdata;
-    logic [4:0] mem_wb_rf_waddr;
+    logic [4:0]  mem_wb_rf_waddr;
     logic        mem_wb_rf_wen;
 
     // pipeline controller signals
@@ -120,6 +120,8 @@ module pipeline #(
     logic [4:0] rf_waddr_controller;
     logic [31:0] rf_wdata_controller;
     logic rf_wen_controller;
+
+    logic [31:0] exe_mem_instr_i;
 
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
@@ -327,6 +329,7 @@ module pipeline #(
         .mem_rf_wen_i(exe_mem_rf_wen),
         .mem_mem_en_i(exe_mem_mem_en),
         .mem_mem_wen_i(exe_mem_mem_wen),
+        .exe_mem_instr_i(exe_mem_instr),
 
         // signals from MEM/WB pipeline registers
         .wb_rf_wdata_i(mem_wb_rf_wdata),
