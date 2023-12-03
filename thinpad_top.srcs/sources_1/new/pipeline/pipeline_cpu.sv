@@ -319,8 +319,9 @@ module pipeline #(
         .exe_mem_wen_i(id_exe_mem_wen),
         .exe_rf_waddr_i(id_exe_rf_waddr),
         .exe_first_time_i(exe_first_time),
-
+        
         // signals from EXE/MEM pipeline registers
+        .mem_pc_i(exe_mem_pc),
         .mem_rf_wdata_i(exe_mem_alu_result),
         .mem_rf_waddr_i(exe_mem_rf_waddr),
         .mem_rf_wen_i(exe_mem_rf_wen),

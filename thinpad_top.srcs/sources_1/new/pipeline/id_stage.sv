@@ -237,6 +237,8 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                rs1_reg = 5'b0;
+                rs1_reg = 5'b0;
             end
             OPCODE_SB_SW: begin
                 inst_type_reg = TYPE_S;
@@ -313,6 +315,7 @@ module ID_Stage (
             end
             exe_pc_o <= pc_reg;
             exe_instr_o <= inst_reg;
+//            if (
             exe_rf_raddr_a_o <= rs1_reg;
             exe_rf_raddr_b_o <= rs2_reg;
             exe_rf_rdata_a_o <= rdata_a_reg;

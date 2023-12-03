@@ -68,11 +68,15 @@ module MEM_Stage (
     logic mem_finish;
     assign mem_finish_o = mem_finish;
     always_ff @ (posedge clk_i) begin
-        past_instr_type <= instr_type;
-        if (!mem_mem_en_i | past_instr_type != instr_type)
-            mem_finish <= 1'b0;
-        if (wb_ack_i)
+        if (rst_i)
             mem_finish <= 1'b1;
+        else begin
+            past_instr_type <= instr_type;
+            if (!mem_mem_en_i | past_instr_type != instr_type)
+                mem_finish <= 1'b0;
+            if (wb_ack_i)
+                mem_finish <= 1'b1;
+        end
     end
 
     // inst decode
@@ -178,6 +182,10 @@ module MEM_Stage (
                     wb_sel_o  <= 4'b1111;
                     // write back to regfile
                     if (wb_ack_i && wb_addr_o != 32'h0) begin
+                        wb_cyc_o  <= 1'b0;
+                        wb_stb_o  <= 1'b0;
+                        wb_we_o   <= 1'b0;
+                        busy_o    <= 1'b0;
                         wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end

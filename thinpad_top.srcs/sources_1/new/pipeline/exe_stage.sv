@@ -142,7 +142,6 @@ module EXE_Stage (
     end
 
     always_comb begin
-        // if (stall_i == 1'b0) begin
         alu_op_o = exe_alu_op_i;
         if (exe_alu_a_mux_i == 1'b1)
             alu_operand_a_o = exe_pc_i;
@@ -159,11 +158,6 @@ module EXE_Stage (
         else 
             // rs2
             alu_operand_b_o = exe_rf_rdata_b_i;
-        // end else begin
-        //     alu_op_o = 4'd1;
-        //     alu_operand_a_o = 32'h0;
-        //     alu_operand_b_o = 32'h0;
-        // end
     end
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
