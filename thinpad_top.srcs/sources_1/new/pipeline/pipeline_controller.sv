@@ -114,11 +114,11 @@ module pipeline_controller(
             end
             // DM@WB->ALU
             if (rf_wen_controller_i) begin
-                if(rf_waddr_controller_i == exe_rf_raddr_a_i && !$isunknown(rf_wdata_controller_i)) begin
+                if(rf_waddr_controller_i == exe_rf_raddr_a_i && !$isunknown(rf_wdata_controller_i) && rf_waddr_controller_i != 0) begin
                     exe_forward_alu_a_o = rf_wdata_controller_i;
                     exe_forward_alu_a_mux_o = 1'b1;
                 end
-                if(rf_waddr_controller_i == exe_rf_raddr_b_i && !$isunknown(rf_wdata_controller_i)) begin
+                if(rf_waddr_controller_i == exe_rf_raddr_b_i && !$isunknown(rf_wdata_controller_i) && rf_waddr_controller_i != 0) begin
                     exe_forward_alu_b_o = rf_wdata_controller_i;
                     exe_forward_alu_b_mux_o = 1'b1;
                 end
