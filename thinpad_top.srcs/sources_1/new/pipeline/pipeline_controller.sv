@@ -51,7 +51,12 @@ module pipeline_controller(
     output reg [31:0] exe_forward_alu_a_o,
     output reg [31:0] exe_forward_alu_b_o,
     output reg exe_forward_alu_a_mux_o,
-    output reg exe_forward_alu_b_mux_o
+    output reg exe_forward_alu_b_mux_o,
+
+    // exception signals
+    input wire ebreak_i,
+    input wire ecall_i,
+    input wire mret_i
 );
     // structure(memory) hazard
     always_comb begin
@@ -68,8 +73,8 @@ module pipeline_controller(
 
         if (mem_busy_i) begin  // stall if memory is busy
             if_stall_o = 1'b1;
-//            id_stall_o = 1'b1;
-//            exe_stall_o = 1'b1;
+            id_stall_o = 1'b1;
+            exe_stall_o = 1'b1;
         end else if (exe_if_pc_mux_i == 1'b1) begin  // branch and jump, flush ID & EXE
 //            if_flush_o = 1'b1;
             id_flush_o = 1'b1;
