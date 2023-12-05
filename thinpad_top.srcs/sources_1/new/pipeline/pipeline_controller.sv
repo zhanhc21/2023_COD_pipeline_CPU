@@ -51,7 +51,12 @@ module pipeline_controller(
     output reg [31:0] exe_forward_alu_a_o,
     output reg [31:0] exe_forward_alu_b_o,
     output reg exe_forward_alu_a_mux_o,
-    output reg exe_forward_alu_b_mux_o
+    output reg exe_forward_alu_b_mux_o,
+
+    // exception signals
+    input wire ebreak_i,
+    input wire ecall_i,
+    input wire mret_i
 );
     // structure(memory) hazard
     always_comb begin

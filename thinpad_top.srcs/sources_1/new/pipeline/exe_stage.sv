@@ -17,6 +17,8 @@ module EXE_Stage (
     input wire        exe_alu_b_mux_i,    // 0: imm, 1: rs2
     input wire [4:0]  exe_rf_waddr_i,
     input wire        exe_rf_wen_i,
+    input wire [11:0] exe_csr_waddr_i,
+    input wire        exe_csr_wen_i,
 
     // stall signal and flush signal
     input wire stall_i,
@@ -46,7 +48,12 @@ module EXE_Stage (
     input  wire [31:0] alu_result_i,
     output reg  [31:0] alu_operand_a_o,
     output reg  [31:0] alu_operand_b_o,
-    output reg  [ 3:0] alu_op_o
+    output reg  [ 3:0] alu_op_o,
+
+    // signals to CSR
+    output reg         csr_wen_o,
+    output reg  [31:0] csr_wdata_o,
+    output reg  [11:0] csr_waddr_o
 ); 
 
     logic [6:0]  opcode;
@@ -73,7 +80,14 @@ module EXE_Stage (
         ANDN  = 19,
         SBSET = 20,
         MINU  = 21,
-        NOP   = 22
+        NOP   = 22,
+        CSRRC = 23,
+        CSRRS = 24,
+        CSRRW = 25,
+        SLTU = 26,
+        EBREAK = 27,
+        ECALL = 28,
+        MRET = 29
     } op_type;
     op_type instr_type;
 
@@ -82,36 +96,51 @@ module EXE_Stage (
         opcode = exe_instr_i[6:0];
         case (opcode)
             7'b0110011: begin
-                if (exe_instr_i[14:12] == 3'b000)
-                    instr_type = ADD;
-                else if (exe_instr_i[14:12] == 3'b111) begin
-                    if (exe_instr_i[31:25] == 7'b0000000)
-                        instr_type = AND;
-                    else // (exe_instr_i[31:25] == 7'b0100000)
-                        instr_type = ANDN;
-                end 
-                else if (exe_instr_i[14:12] == 3'b110) begin
-                    if (exe_instr_i[31:25] == 7'b0000101)
-                        instr_type = MINU;
-                    else
-                        instr_type = OR;
-                end
-                else if (exe_instr_i[14:12] == 3'b100)
-                    instr_type = XOR;
-                else // (exe_instr_i[14:12] == 3'b001)
-                    instr_type = SBSET;
+                case(exe_instr_i[14:12])
+                    3'b000: begin
+                        instr_type = ADD;
+                    end
+                    3'b111: begin
+                        if (exe_instr_i[31:25] == 7'b0000000)
+                            instr_type = AND;
+                        else // (exe_instr_i[31:25] == 7'b0100000)
+                            instr_type = ANDN;
+                    end
+                    3'b110: begin
+                        if (exe_instr_i[31:25] == 7'b0000101)
+                            instr_type = MINU;
+                        else
+                            instr_type = OR;
+                    end
+                    3'b100: begin
+                        instr_type = XOR;
+                    end
+                    3'b011: begin
+                        instr_type = SLTU;
+                    end
+                    default: begin // (exe_instr_i[14:12] == 3'b001)
+                        instr_type = SBSET;
+                    end
+                endcase
             end
             7'b0010011: begin
-                if (exe_instr_i[14:12] == 3'b000)
-                    instr_type = ADDI;
-                else if (exe_instr_i[14:12] == 3'b111)
-                    instr_type = ANDI;
-                else if (exe_instr_i[14:12] == 3'b110)
-                    instr_type = ORI;
-                else if (exe_instr_i[14:12] == 3'b001)
-                    instr_type = SLLI;
-                else // (exe_instr_i[14:12] == 3'b101)
-                    instr_type = SRLI;
+                case(exe_instr_i[14:12])
+                    3'b000: begin
+                        instr_type = ADDI;
+                    end
+                    3'b111: begin
+                        instr_type = ANDI;
+                    end
+                    3'b110: begin
+                        instr_type = ORI;
+                    end
+                    3'b001: begin
+                        instr_type = SLLI;
+                    end
+                    default: begin
+                        instr_type = SRLI;
+                    end
+                endcase
             end
             7'b0010111: instr_type = AUIPC;
             7'b1100011: begin
@@ -135,6 +164,32 @@ module EXE_Stage (
                 else // (exe_instr_i[14:12] == 3'b010)
                     instr_type = SW; 
             end
+            7'b1110011: begin
+                case(exe_instr_i[14:12])
+                    3'b011: begin
+                        instr_type = CSRRC;
+                    end
+                    3'b010: begin
+                        instr_type = CSRRS;
+                    end
+                    3'b001: begin
+                        instr_type = CSRRW;
+                    end
+                    default: begin
+                        case(exe_instr_i[31:20])
+                            12'b000000000001: begin
+                                instr_type = EBREAK;
+                            end
+                            12'b000000000000: begin
+                                instr_type = ECALL;
+                            end
+                            default: begin
+                                instr_type = MRET;
+                            end
+                        endcase
+                    end
+                endcase
+            end
             default: instr_type = NOP;
         endcase
     end
@@ -156,6 +211,12 @@ module EXE_Stage (
         else 
             // rs2
             alu_operand_b_o = exe_rf_rdata_b_i;
+    end
+
+    always_comb begin
+        csr_wen_o = exe_csr_wen_i;
+        csr_waddr_o = exe_csr_waddr_i;
+        csr_wdata_o = alu_result_i;
     end
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
@@ -243,7 +304,22 @@ module EXE_Stage (
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
                     end
-                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu
+                    CSRRC: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
+                    end
+                    CSRRS: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
+                    end
+                    CSRRW: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
+                    end
+                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu,sltu,ebreak,ecall,mret
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  
