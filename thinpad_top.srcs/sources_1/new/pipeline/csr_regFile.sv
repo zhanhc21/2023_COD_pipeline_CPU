@@ -10,7 +10,7 @@ module csr_regFile (
 
     // EXE stage write csr
     input wire        wen_i,
-    input wire [12:0] waddr_i,
+    input wire [11:0] waddr_i,
     input wire [31:0] wdata_i,
 
     // interupt signals from controller
@@ -54,7 +54,7 @@ module csr_regFile (
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
-            mtvec_mode  <= DIRECT;
+            mtvec_mode  <= `DIRECT;
             mtvec_base  <= 30'b0;
 
             mscratch    <= 32'b0;
@@ -65,7 +65,7 @@ module csr_regFile (
 
             mstatus_ie  <= 1'b0;
             mstatus_pie <= 1'b1;
-            mstatus_pp  <= U_MODE;
+            mstatus_pp  <= `U_MODE;
 
             mie_tie     <= 1'b0;
             mie_sie     <= 1'b0;
@@ -80,42 +80,48 @@ module csr_regFile (
         end else begin
             if (wen_i) begin
                 case (waddr_i)
-                    MSTATUS: begin
+                    `MSTATUS: begin
                         mstatus_ie  <= wdata_i[3];
                         mstatus_pie <= wdata_i[7];                    
                     end
-                    MIE: begin
+                    `MIE: begin
                         mie_tie <= wdata_i[7];
                         mie_sie <= wdata_i[3];
                         mie_eie <= wdata_i[11];                            
                     end
-                    MTVEC: begin
+                    `MTVEC: begin
                         mtvec <= wdata_i;
                     end
-                    MSCRATCH: begin                            
+                    `MSCRATCH: begin                            
                         mscratch <= wdata_i;
                     end
-                    MEPC: begin             
+                    `MEPC: begin             
                         mepc <= {wdata_i[31:2], 2'b00};
                     end
-                    MCAUSE: begin
+                    `MCAUSE: begin
                         mcause_interrupt <= wdata_i[31];
                         mcause_exc_code <= wdata_i[30:0];                 
+                    end
+                    default: begin
+                        // do nothing
                     end
                 endcase
             end else begin
                 case (raddr_i)
-                    MSTATUS:  rdata_o <= mstatus;
-                    MIE:      rdata_o <= mie;
-                    MIP:      rdata_o <= mip;
-                    MTVEC:    rdata_o <= mtvec;
-                    MSCRATCH: rdata_o <= mscratch;
-                    MEPC:     rdata_o <= mepc;
-                    MCAUSE:   rdata_o <= mcause;
+                    `MSTATUS:  rdata_o <= mstatus;
+                    `MIE:      rdata_o <= mie;
+                    `MIP:      rdata_o <= mip;
+                    `MTVEC:    rdata_o <= mtvec;
+                    `MSCRATCH: rdata_o <= mscratch;
+                    `MEPC:     rdata_o <= mepc;
+                    `MCAUSE:   rdata_o <= mcause;
+                    default: begin
+                        // do nothing
+                    end
                 endcase
             end
             
-            // MIP: begin
+            // `MIP: begin
             //     mip_tip <= timer_i;
             //     mip_sip <= softwire_i;
             //     mip_eip <= external_i;
