@@ -94,36 +94,48 @@ module EXE_Stage (
         SignExt = {{20{exe_imm_i[10]}}, {12{1'b0}}};
         case (opcode)
             7'b0110011: begin
-                if (exe_instr_i[14:12] == 3'b000)
-                    instr_type = ADD;
-                else if (exe_instr_i[14:12] == 3'b111) begin
-                    if (exe_instr_i[31:25] == 7'b0000000)
-                        instr_type = AND;
-                    else // (exe_instr_i[31:25] == 7'b0100000)
-                        instr_type = ANDN;
-                end 
-                else if (exe_instr_i[14:12] == 3'b110) begin
-                    if (exe_instr_i[31:25] == 7'b0000101)
-                        instr_type = MINU;
-                    else
-                        instr_type = OR;
-                end
-                else if (exe_instr_i[14:12] == 3'b100)
-                    instr_type = XOR;
-                else // (exe_instr_i[14:12] == 3'b001)
-                    instr_type = SBSET;
+                case(exe_instr_i[14:12])
+                    3'b000: begin
+                        instr_type = ADD;
+                    end
+                    3'b111: begin
+                        if (exe_instr_i[31:25] == 7'b0000000)
+                            instr_type = AND;
+                        else // (exe_instr_i[31:25] == 7'b0100000)
+                            instr_type = ANDN;
+                    end
+                    3'b110: begin
+                        if (exe_instr_i[31:25] == 7'b0000101)
+                            instr_type = MINU;
+                        else
+                            instr_type = OR;
+                    end
+                    3'b100: begin
+                        instr_type = XOR;
+                    end
+                    default: begin // (exe_instr_i[14:12] == 3'b001)
+                        instr_type = SBSET;
+                    end
+                endcase
             end
             7'b0010011: begin
-                if (exe_instr_i[14:12] == 3'b000)
-                    instr_type = ADDI;
-                else if (exe_instr_i[14:12] == 3'b111)
-                    instr_type = ANDI;
-                else if (exe_instr_i[14:12] == 3'b110)
-                    instr_type = ORI;
-                else if (exe_instr_i[14:12] == 3'b001)
-                    instr_type = SLLI;
-                else // (exe_instr_i[14:12] == 3'b101)
-                    instr_type = SRLI;
+                case(exe_instr_i[14:12])
+                    3'b000: begin
+                        instr_type = ADDI;
+                    end
+                    3'b111: begin
+                        instr_type = ANDI;
+                    end
+                    3'b110: begin
+                        instr_type = ORI;
+                    end
+                    3'b001: begin
+                        instr_type = SLLI;
+                    end
+                    default: begin
+                        instr_type = SRLI;
+                    end
+                endcase
             end
             7'b0010111: instr_type = AUIPC;
             7'b1100011: begin
@@ -148,12 +160,17 @@ module EXE_Stage (
                     instr_type = SW; 
             end
             7'b1110011: begin
-                if (exe_instr_i[14:12] == 3'b011)
-                    instr_type = CSRRC;
-                else if (exe_instr_i[14:12] == 3'b010)
-                    instr_type = CSRRS;
-                else // (exe_instr_i[14:12] == 3'b001)
-                    instr_type = CSRRW;
+                case(exe_instr_i[14:12])
+                    3'b011: begin
+                        instr_type = CSRRC;
+                    end
+                    3'b010: begin
+                        instr_type = CSRRS;
+                    end
+                    default: begin
+                        instr_type = CSRRW;
+                    end
+                endcase
             end
             default: instr_type = NOP;
         endcase
