@@ -22,6 +22,7 @@ module alu (
             4'd11 : logic_y = a & ~b;
             4'd12 : logic_y = a | (32'h1 << (b & 32'h1f));
             4'd13 : logic_y = (a < b) ? a : b;
+            4'd14 : logic_y = (a < b) ? 32'd1 : 32'd0;
             default : logic_y = 32'd0;
         endcase
     end
