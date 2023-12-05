@@ -84,7 +84,11 @@ module EXE_Stage (
         NOP   = 22,
         CSRRC = 23,
         CSRRS = 24,
-        CSRRW = 25
+        CSRRW = 25,
+        SLTU = 26,
+        EBREAK = 27,
+        ECALL = 28,
+        MRET = 29
     } op_type;
     op_type instr_type;
 
@@ -112,6 +116,9 @@ module EXE_Stage (
                     end
                     3'b100: begin
                         instr_type = XOR;
+                    end
+                    3'b011: begin
+                        instr_type = SLTU;
                     end
                     default: begin // (exe_instr_i[14:12] == 3'b001)
                         instr_type = SBSET;
@@ -167,8 +174,21 @@ module EXE_Stage (
                     3'b010: begin
                         instr_type = CSRRS;
                     end
-                    default: begin
+                    3'b001: begin
                         instr_type = CSRRW;
+                    end
+                    default: begin
+                        case(exe_instr_i[31:20])
+                            12'b000000000001: begin
+                                instr_type = EBREAK;
+                            end
+                            12'b000000000000: begin
+                                instr_type = ECALL;
+                            end
+                            default: begin
+                                instr_type = MRET;
+                            end
+                        endcase
                     end
                 endcase
             end
@@ -305,7 +325,7 @@ module EXE_Stage (
                         if_pc_o <= exe_pc_i;
                         mem_alu_result_o <= exe_imm_i;
                     end
-                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu
+                    // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu,sltu,ebreak,ecall,mret
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;                  

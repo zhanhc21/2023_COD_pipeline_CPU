@@ -52,6 +52,10 @@ module pipeline #(
     logic [11:0] csr_waddr_o;
     logic        csr_wen_o;
 
+    logic ebreak_signal;
+    logic ecall_signal;
+    logic mret_singal;
+
     // IF signals
     logic [31:0] if_id_pc;
     logic [31:0] if_id_instr;
@@ -183,6 +187,9 @@ module pipeline #(
 
         // signal to controller
         .exe_first_time_o(exe_first_time),
+        .ebreak_o(ebreak_signal),
+        .ecall_o(ecall_signal),
+        .mret_o(mret_singal),
 
         // signals to EXE stage
         .exe_pc_o(id_exe_pc),
@@ -381,6 +388,11 @@ module pipeline #(
         .exe_forward_alu_a_o(exe_forward_alu_a),
         .exe_forward_alu_b_o(exe_forward_alu_b),
         .exe_forward_alu_a_mux_o(exe_forward_alu_a_mux),
-        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux)
+        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux),
+
+        // exception signals
+        .ebreak_i(ebreak_signal),
+        .ecall_i(ecall_signal),
+        .mret_i(mret_singal)
     );
 endmodule
