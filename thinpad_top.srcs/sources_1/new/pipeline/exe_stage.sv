@@ -17,6 +17,8 @@ module EXE_Stage (
     input wire        exe_alu_b_mux_i,    // 0: imm, 1: rs2
     input wire [4:0]  exe_rf_waddr_i,
     input wire        exe_rf_wen_i,
+    input wire [11:0] exe_csr_waddr_i,
+    input wire        exe_csr_wen_i,
 
     // stall signal and flush signal
     input wire stall_i,
@@ -46,7 +48,12 @@ module EXE_Stage (
     input  wire [31:0] alu_result_i,
     output reg  [31:0] alu_operand_a_o,
     output reg  [31:0] alu_operand_b_o,
-    output reg  [ 3:0] alu_op_o
+    output reg  [ 3:0] alu_op_o,
+
+    // signals to CSR
+    output reg         csr_wen_o,
+    output reg  [31:0] csr_wdata_o,
+    output reg  [11:0] csr_waddr_o
 ); 
 
     logic [6:0]  opcode;
@@ -74,7 +81,8 @@ module EXE_Stage (
         ANDN  = 19,
         SBSET = 20,
         MINU  = 21,
-        NOP   = 22
+        NOP   = 22,
+        CSRRC = 23
     } op_type;
     op_type instr_type;
 
@@ -137,6 +145,10 @@ module EXE_Stage (
                 else // (exe_instr_i[14:12] == 3'b010)
                     instr_type = SW; 
             end
+            7'b1110011: begin
+                if (exe_instr_i[14:12] == 3'b011)
+                    instr_type = CSRRC;
+            end
             default: instr_type = NOP;
         endcase
     end
@@ -158,6 +170,12 @@ module EXE_Stage (
         else 
             // rs2
             alu_operand_b_o = exe_rf_rdata_b_i;
+    end
+
+    always_comb begin
+        csr_wen_o = exe_csr_wen_i;
+        csr_waddr_o = exe_csr_waddr_i;
+        csr_wdata_o = alu_result_i;
     end
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
@@ -248,6 +266,11 @@ module EXE_Stage (
                         mem_mem_en_o <= 1'b0;
                         mem_mem_wen_o <= 1'b0;
                         mem_rf_wen_o <= 1'b0;
+                    end
+                    CSRRC: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
                     end
                     // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu
                     default: begin

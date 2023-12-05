@@ -15,6 +15,10 @@ module ID_Stage (
     input wire [31:0] rf_rdata_b_i,
     output reg [4:0] rf_raddr_a_o,
     output reg [4:0] rf_raddr_b_o,
+
+    // csr signals
+    input wire [31:0] csr_rdata_i,
+    output reg [11:0] csr_raddr_o,
     
     // signal to controller
     output reg exe_first_time_o,
@@ -22,18 +26,21 @@ module ID_Stage (
     // signals to EXE stage
     output reg [31:0] exe_pc_o,
     output reg [31:0] exe_instr_o,
-    output reg [4:0] exe_rf_raddr_a_o,
-    output reg [4:0] exe_rf_raddr_b_o,
+    output reg [ 4:0] exe_rf_raddr_a_o,
+    output reg [ 4:0] exe_rf_raddr_b_o,
     output reg [31:0] exe_rf_rdata_a_o,
     output reg [31:0] exe_rf_rdata_b_o,
     output reg [31:0] exe_imm_o,
     output reg        exe_mem_en_o,  // 1: use
     output reg        exe_mem_wen_o,  // 1: enable
-    output reg [3:0] exe_alu_op_o,
+    output reg [ 3:0] exe_alu_op_o,
     output reg        exe_alu_a_mux_o,  // 0: rs1, 1: pc
     output reg        exe_alu_b_mux_o,  // 0: imm, 1: rs2
-    output reg [4:0] exe_rf_waddr_o,
-    output reg        exe_rf_wen_o  // 1: enable
+    output reg [ 4:0] exe_rf_waddr_o,
+    output reg        exe_rf_wen_o,  // 1: enable
+
+    output reg [11:0] exe_csr_waddr_o,
+    output reg        exe_csr_wen_o  // 1: enable
 );
     // TODO: stall signal and flush signal
     reg [31:0] pc_reg;
@@ -60,6 +67,12 @@ module ID_Stage (
     reg mem_wen_reg;  // 1: enable
     reg rf_wen_reg;  // 1: enable
 
+    reg [31:0] csr_rdata_reg;
+    reg [11:0] csr_raddr_reg;
+
+    reg [11:0] csr_waddr_reg;
+    reg csr_wen_reg;  // 1: enable
+
     imm_gen u_imm_gen(
         .inst(inst_reg),
         .imm_gen_type(inst_type_reg),
@@ -75,7 +88,8 @@ module ID_Stage (
         OPCODE_JALR = 7'b1100111,
         OPCODE_LB_LW = 7'b0000011,
         OPCODE_LUI = 7'b0110111,
-        OPCODE_SB_SW = 7'b0100011
+        OPCODE_SB_SW = 7'b0100011,
+        OPCODE_CSRRC = 7'b1110011
     } opcode_t;
 
     typedef enum logic [2:0] {
@@ -113,9 +127,13 @@ module ID_Stage (
         funct6_reg = id_instr_i[31:25];
         rs1_reg = id_instr_i[19:15];
         rs2_reg = id_instr_i[24:20];
+        csr_raddr_reg = id_instr_i[31:20];
+        csr_waddr_reg = id_instr_i[31:20];
 
         rdata_a_reg = rf_rdata_a_i;
         rdata_b_reg = rf_rdata_b_i;
+
+        csr_rdata_reg = csr_rdata_i;
 
         case(opcode_reg)
             OPCODE_ADD_AND_OR_XOR_ANDN_SBSET_MINU: begin
@@ -153,6 +171,7 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                csr_wen_reg = 0;
             end
             OPCODE_ADDI_ANDI_ORI_SLLI_SRLI: begin
                 inst_type_reg = TYPE_I;
@@ -181,6 +200,7 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                csr_wen_reg = 0;
             end
             OPCODE_AUIPC: begin
                 inst_type_reg = TYPE_U;
@@ -190,6 +210,7 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                csr_wen_reg = 0;
             end
             OPCODE_BEQ_BNE: begin
                 inst_type_reg = TYPE_B;
@@ -199,6 +220,7 @@ module ID_Stage (
                 rf_wen_reg = 0;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                csr_wen_reg = 0;
             end
             OPCODE_JAL: begin
                 inst_type_reg = TYPE_J;
@@ -208,6 +230,7 @@ module ID_Stage (
                 rf_wen_reg = 1;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                csr_wen_reg = 0;
             end
             OPCODE_JALR: begin  // NOTE: pc = alu_result & ~1
                 inst_type_reg = TYPE_I;
@@ -218,6 +241,7 @@ module ID_Stage (
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
                 rs2_reg = 5'b0;
+                csr_wen_reg = 0;
             end
             OPCODE_LB_LW: begin
                 inst_type_reg = TYPE_I;
@@ -228,6 +252,7 @@ module ID_Stage (
                 mem_en_reg = 1;
                 mem_wen_reg = 0;
                 rs2_reg = 5'b0;
+                csr_wen_reg = 0;
             end
             OPCODE_LUI: begin
                 inst_type_reg = TYPE_U;
@@ -238,7 +263,8 @@ module ID_Stage (
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
                 rs1_reg = 5'b0;
-                rs1_reg = 5'b0;
+                rs2_reg = 5'b0;
+                csr_wen_reg = 0;
             end
             OPCODE_SB_SW: begin
                 inst_type_reg = TYPE_S;
@@ -248,6 +274,18 @@ module ID_Stage (
                 rf_wen_reg = 0;
                 mem_en_reg = 1;
                 mem_wen_reg = 1;
+                csr_wen_reg = 0;
+            end
+            OPCODE_CSRRC: begin
+                inst_type_reg = TYPE_I;
+                alu_op_reg = ALU_ANDN;
+                alu_a_mux_reg = 0;
+                alu_b_mux_reg = 0;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
+                rs2_reg = 5'b0;
+                csr_wen_reg = 1;
             end
             default: begin
                 inst_type_reg = TYPE_R;
@@ -257,6 +295,9 @@ module ID_Stage (
                 rf_wen_reg = 0;
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
+                rs1_reg = 5'b0;
+                rs2_reg = 5'b0;
+                csr_wen_reg = 0;
             end
         endcase
     end
@@ -315,12 +356,20 @@ module ID_Stage (
             end
             exe_pc_o <= pc_reg;
             exe_instr_o <= inst_reg;
-//            if (
             exe_rf_raddr_a_o <= rs1_reg;
             exe_rf_raddr_b_o <= rs2_reg;
             exe_rf_rdata_a_o <= rdata_a_reg;
             exe_rf_rdata_b_o <= rdata_b_reg;
-            exe_imm_o <= imm_gen_imm_i;
+
+            case (opcode_reg)
+                OPCODE_CSRRC: begin
+                    exe_imm_o <= csr_rdata_reg;
+                end
+                default: begin
+                    exe_imm_o <= imm_gen_imm_i;
+                end
+            endcase
+
             exe_mem_en_o <= mem_en_reg;
             exe_mem_wen_o <= mem_wen_reg;
             exe_alu_op_o <= alu_op_reg;
@@ -328,10 +377,14 @@ module ID_Stage (
             exe_alu_b_mux_o <= alu_b_mux_reg;
             exe_rf_waddr_o <= rd_reg;
             exe_rf_wen_o <= rf_wen_reg;
+
+            exe_csr_waddr_o <= csr_raddr_reg;
+            exe_csr_wen_o <= csr_wen_reg;
         end
     end
 
     assign rf_raddr_a_o = rs1_reg;
     assign rf_raddr_b_o = rs2_reg;
+    assign csr_raddr_o = csr_raddr_reg;
     
 endmodule
