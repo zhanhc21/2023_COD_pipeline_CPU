@@ -89,7 +89,7 @@ module ID_Stage (
         OPCODE_LB_LW = 7'b0000011,
         OPCODE_LUI = 7'b0110111,
         OPCODE_SB_SW = 7'b0100011,
-        OPCODE_CSRRC = 7'b1110011
+        OPCODE_CSRRC_CSRRS_CSRRW = 7'b1110011
     } opcode_t;
 
     typedef enum logic [2:0] {
@@ -276,9 +276,23 @@ module ID_Stage (
                 mem_wen_reg = 1;
                 csr_wen_reg = 0;
             end
-            OPCODE_CSRRC: begin
+            OPCODE_CSRRC_CSRRS_CSRRW: begin
                 inst_type_reg = TYPE_I;
-                alu_op_reg = ALU_ANDN;
+                case(funct3_reg)
+                    3'b011: begin  // <instruction is CSRRC>
+                        alu_op_reg = ALU_ANDN;
+                    end
+                    3'b010: begin // <instruction is CSRRS>
+                        alu_op_reg = ALU_OR;
+                    end
+                    3'b001: begin // <instruction is CSRRW>
+                        alu_op_reg = ALU_ADD;
+                        rs1_reg = 5'b0;
+                    end
+                    default: begin
+                        alu_op_reg = ALU_DEFAULT;
+                    end
+                endcase
                 alu_a_mux_reg = 0;
                 alu_b_mux_reg = 0;
                 rf_wen_reg = 1;
@@ -362,7 +376,7 @@ module ID_Stage (
             exe_rf_rdata_b_o <= rdata_b_reg;
 
             case (opcode_reg)
-                OPCODE_CSRRC: begin
+                OPCODE_CSRRC_CSRRS_CSRRW: begin
                     exe_imm_o <= csr_rdata_reg;
                 end
                 default: begin

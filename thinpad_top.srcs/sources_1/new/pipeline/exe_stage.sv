@@ -82,7 +82,9 @@ module EXE_Stage (
         SBSET = 20,
         MINU  = 21,
         NOP   = 22,
-        CSRRC = 23
+        CSRRC = 23,
+        CSRRS = 24,
+        CSRRW = 25
     } op_type;
     op_type instr_type;
 
@@ -148,6 +150,10 @@ module EXE_Stage (
             7'b1110011: begin
                 if (exe_instr_i[14:12] == 3'b011)
                     instr_type = CSRRC;
+                else if (exe_instr_i[14:12] == 3'b010)
+                    instr_type = CSRRS;
+                else // (exe_instr_i[14:12] == 3'b001)
+                    instr_type = CSRRW;
             end
             default: instr_type = NOP;
         endcase
@@ -268,6 +274,16 @@ module EXE_Stage (
                         mem_rf_wen_o <= 1'b0;
                     end
                     CSRRC: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
+                    end
+                    CSRRS: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i;
+                        mem_alu_result_o <= exe_imm_i;
+                    end
+                    CSRRW: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i;
                         mem_alu_result_o <= exe_imm_i;
