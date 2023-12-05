@@ -52,6 +52,8 @@ module csr_regFile (
     logic [31:0] mtime;
     logic [31:0] mtimecmp;
 
+
+
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
             mtvec_mode  <= `DIRECT;
@@ -81,13 +83,58 @@ module csr_regFile (
             if (wen_i) begin
                 case (waddr_i)
                     `MSTATUS: begin
-                        mstatus_ie  <= wdata_i[3];
-                        mstatus_pie <= wdata_i[7];                    
+                        case (wdata_i[12:11])
+                            `M_MODE: begin
+                                mstatus_ie  <= wdata_i[3];
+                                // update pie & pp before interruption
+                                if (!wdata_i[3]) begin
+                                    mstatus_pie <= wdata_i[7];
+                                    mstatus_pp  <= `M_MODE;
+                                end
+                            end
+                            // `S_MODE: begin
+                            //     if (`S_MODE >= mstatus_pp) begin
+                            //         mstatus_ie <= wdata_i[1];
+                            //         if (!wdata_i[1]) begin
+                            //             mstatus_pie <= wdata_i[5];
+                            //             mstatus_pp  <= `S_MODE;
+                            //         end
+                            //     end else begin
+                            //         mstatus_ie  <= mstatus_ie;
+                            //         mstatus_pie <= mstatus_pie;
+                            //         mstatus_pp  <= mstatus_pp;
+                            //     end
+                            // end
+                            // `U_MODE: begin
+                            //     if (`U_MODE == mstatus_pp) begin
+                            //         mstatus_ie <= wdata_i[0];
+                            //         if (!wdata_i[0]) begin
+                            //             mstatus_pie <= wdata_i[4];
+                            //             mstatus_pp  <= `U_MODE;
+                            //         end
+                            //     end else begin
+                            //         mstatus_ie  <= mstatus_ie;
+                            //         mstatus_pie <= mstatus_pie;
+                            //         mstatus_pp  <= mstatus_pp;
+                            //     end                         
+                            // end
+                            default: begin
+                                mstatus_ie  <= mstatus_ie;
+                                mstatus_pie <= mstatus_pie;
+                                mstatus_pp  <= mstatus_pp;
+                            end
+                        endcase                                       
                     end
                     `MIE: begin
-                        mie_tie <= wdata_i[7];
-                        mie_sie <= wdata_i[3];
-                        mie_eie <= wdata_i[11];                            
+                        if (wdata_i[12:11] == `M_MODE) begin
+                            mie_tie <= wdata_i[7];
+                            mie_sie <= wdata_i[3];
+                            mie_eie <= wdata_i[11];
+                        end else begin
+                            mie_tie <= mie_tie;
+                            mie_sie <= mie_sie;
+                            mie_eie <= mie_eie;
+                        end                                                    
                     end
                     `MTVEC: begin
                         mtvec <= wdata_i;
@@ -100,7 +147,7 @@ module csr_regFile (
                     end
                     `MCAUSE: begin
                         mcause_interrupt <= wdata_i[31];
-                        mcause_exc_code <= wdata_i[30:0];                 
+                        mcause_exc_code  <= wdata_i[30:0];                 
                     end
                     default: begin
                         // do nothing
@@ -128,5 +175,4 @@ module csr_regFile (
             // end
         end
     end
-
 endmodule

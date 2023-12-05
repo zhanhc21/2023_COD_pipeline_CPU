@@ -73,17 +73,17 @@ module pipeline #(
     // ID signals
     logic [31:0] id_exe_pc;
     logic [31:0] id_exe_instr;
-    logic [4:0] id_exe_rf_raddr_a;
-    logic [4:0] id_exe_rf_raddr_b;
+    logic [ 4:0] id_exe_rf_raddr_a;
+    logic [ 4:0] id_exe_rf_raddr_b;
     logic [31:0] id_exe_rf_rdata_a;
     logic [31:0] id_exe_rf_rdata_b;
     logic [31:0] id_exe_imm;
     logic        id_exe_mem_en;
     logic        id_exe_mem_wen;
-    logic [3:0] id_exe_alu_op;
+    logic [ 3:0] id_exe_alu_op;
     logic        id_exe_alu_a_mux;
     logic        id_exe_alu_b_mux;
-    logic [4:0] id_exe_rf_waddr;
+    logic [ 4:0] id_exe_rf_waddr;
     logic        id_exe_rf_wen;
     logic [11:0] id_exe_csr_waddr;
     logic        id_exe_csr_wen;
@@ -95,14 +95,14 @@ module pipeline #(
     logic        exe_mem_mem_en;
     logic        exe_mem_mem_wen;
     logic [31:0] exe_mem_alu_result;
-    logic [4:0] exe_mem_rf_waddr;
+    logic [ 4:0] exe_mem_rf_waddr;
     logic        exe_mem_rf_wen;
     logic [31:0] exe_if_pc;
     logic        exe_if_pc_mux;
     logic [31:0] alu_result;
     logic [31:0] alu_operand_a;
     logic [31:0] alu_operand_b;
-    logic [3:0] alu_op;
+    logic [ 3:0] alu_op;
 
     alu u_alu (
         .a  (alu_operand_a),
