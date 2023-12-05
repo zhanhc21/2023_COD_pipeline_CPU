@@ -1,44 +1,126 @@
+`include "csr.vh"
+
 module csr_regFile (
     input wire clk_i,
     input wire rst_i,
 
-    // TODO 考虑发生在哪一阶段
-    input wire [ 4:0] raddr_i;
-    output reg [31:0] rdata_o;
+    // ID stage read csr
+    input wire [11:0] raddr_i,
+    output reg [31:0] rdata_o,
 
-    // TODO 考虑发生在哪一阶段
-    input wire        we_i;
-    input wire [ 4:0] waddr_i;
-    input wire [31:0] wdata_i;
+    // EXE stage write csr
+    input wire        wen_i,
+    input wire [12:0] waddr_i,
+    input wire [31:0] wdata_i,
 
-    
+    // interupt signals from controller
+    input wire external_i,
+    input wire softwire_i,
+    input wire timer_i
 );
     logic [31:0] mtvec;
+    logic [ 1:0] mtvec_mode;
+    logic [31:2] mtvec_base;
+    assign mtvec = {mtvec_base, mtvec_mode};
+
     logic [31:0] mscratch;
     logic [31:0] mepc;
+
     logic [31:0] mcause;
+    logic        mcause_interrupt;  // 1 interrupt  0 exception
+    logic [30:0] mcause_exc_code;
+    assign mcause = {mcause_interrupt, mcause_exc_code};
+
     logic [31:0] mstatus;
+    logic        mstatus_ie;   // Current Interrupt Enable
+    logic        mstatus_pie;  // Previous Interrupt Enable
+    logic [ 1:0] mstatus_pp;   // Previous Privilege Mode
+    assign mstatus = {19'b0, mstatus_pp, 3'b0, mstatus_pie, 3'b0, mstatus_ie, 3'b0};
+
     logic [31:0] mie;
+    logic        mie_tie;   // timer interrupt enable
+    logic        mie_sie;   // software interrupt enable 
+    logic        mie_eie;   // external interrupt enable
+    assign mie = {20'b0, mie_eie, 3'b0, mie_tie, 3'b0, mie_sie, 3'b0};
+
     logic [31:0] mip;
+    logic        mip_tip;   // timer interrupt pending
+    logic        mip_sip;   // software interrupt pending
+    logic        mip_eip;   // external interrupt pending
+    assign mip = {20'b0, mip_eip, 3'b0, mip_tip, 3'b0, mip_sip, 3'b0};
 
     logic [31:0] mtime;
     logic [31:0] mtimecmp;
 
-    typedef enum logic [3:0] {
-        MTVEC    = 0,
-        MSCRATCH = 1,
-        MEPC     = 2,
-        MCAUSE   = 3,
-        MSTATUS  = 4,
-        MIE      = 5,
-        MIP      = 6
-    } reg_type_t;
-
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
+            mtvec_mode  <= DIRECT;
+            mtvec_base  <= 30'b0;
 
+            mscratch    <= 32'b0;
+            mepc        <= 32'b0;
+
+            mcause_interrupt <= 1'b0;
+            mcause_exc_code  <= 31'b0;
+
+            mstatus_ie  <= 1'b0;
+            mstatus_pie <= 1'b1;
+            mstatus_pp  <= U_MODE;
+
+            mie_tie     <= 1'b0;
+            mie_sie     <= 1'b0;
+            mie_eie     <= 1'b0;
+
+            mip_tip     <= 1'b0;
+            mip_sip     <= 1'b0;
+            mip_eip     <= 1'b0;
+    
+            mtime       <= 32'b0;
+            mtimecmp    <= 32'b0;
         end else begin
-
+            if (wen_i) begin
+                case (waddr_i)
+                    MSTATUS: begin
+                        mstatus_ie  <= wdata_i[3];
+                        mstatus_pie <= wdata_i[7];                    
+                    end
+                    MIE: begin
+                        mie_tie <= wdata_i[7];
+                        mie_sie <= wdata_i[3];
+                        mie_eie <= wdata_i[11];                            
+                    end
+                    MTVEC: begin
+                        mtvec <= wdata_i;
+                    end
+                    MSCRATCH: begin                            
+                        mscratch <= wdata_i;
+                    end
+                    MEPC: begin             
+                        mepc <= {wdata_i[31:2], 2'b00};
+                    end
+                    MCAUSE: begin
+                        mcause_interrupt <= wdata_i[31];
+                        mcause_exc_code <= wdata_i[30:0];                 
+                    end
+                endcase
+            end else begin
+                case (raddr_i)
+                    MSTATUS:  rdata_o <= mstatus;
+                    MIE:      rdata_o <= mie;
+                    MIP:      rdata_o <= mip;
+                    MTVEC:    rdata_o <= mtvec;
+                    MSCRATCH: rdata_o <= mscratch;
+                    MEPC:     rdata_o <= mepc;
+                    MCAUSE:   rdata_o <= mcause;
+                endcase
+            end
+            
+            // MIP: begin
+            //     mip_tip <= timer_i;
+            //     mip_sip <= softwire_i;
+            //     mip_eip <= external_i;
+            // end
         end
     end
+
 endmodule
