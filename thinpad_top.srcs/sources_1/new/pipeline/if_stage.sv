@@ -80,7 +80,7 @@ module IF_Stage #(
                 wb_addr_o <= pc_reg;
             end
 
-            if (wb_ack_i && inst_reg != wb_data_i && (!pc_mux_i || wb_addr_o == pc_from_exe_i)) begin
+            if (wb_ack_i && (!pc_mux_i || wb_addr_o == pc_from_exe_i)) begin
                 wb_cyc_o <= 1'b0;
                 wb_stb_o <= 1'b0;
                 wb_we_o <= 1'b0;

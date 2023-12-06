@@ -68,7 +68,7 @@ module ICache #(
             cache_ack_reg <= 1'b0;
             cache_data_reg <= 32'h0;
             for (i=0; i<64; i++)
-                cache_regs[i] <= 56'd0;
+                cache_regs[i] <= 57'd0;
         end else begin
             if (cache_en_i && cache_addr_i[31:8]!=cache_regs[cache_addr_i[7:2]].tag && cache_addr_i != 32'h0) begin
                 wb_cyc_o <= 1'b1;
@@ -81,7 +81,9 @@ module ICache #(
                     wb_stb_o <= 1'b0;
                     wb_we_o <= 1'b0;
                     wb_sel_o <= 4'b0000;
-                    if (wb_data_i[6:0] == 7'b0110011 || wb_data_i[6:0] == 7'b0010011) begin
+                    if (wb_data_i[6:0] == 7'b0110111 || wb_data_i[6:0] == 7'b0010111 // lui auipc 
+                    || wb_data_i[6:0] == 7'b0010011) // I
+                    begin
                         cache_regs[cache_addr_i[7:2]].valid <= 1'b1;
                         cache_regs[cache_addr_i[7:2]].tag <= cache_addr_i[31:8];
                         cache_regs[cache_addr_i[7:2]].data <= wb_data_i;
