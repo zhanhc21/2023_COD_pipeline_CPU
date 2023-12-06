@@ -45,6 +45,17 @@ module pipeline #(
         .rdata_b(rf_rdata_b_i)
     ); 
 
+    // CSR signals
+    logic [31:0] csr_rdata_i;
+    logic [11:0] csr_raddr_o;
+    logic [31:0] csr_wdata_o;
+    logic [11:0] csr_waddr_o;
+    logic        csr_wen_o;
+
+    logic ebreak_signal;
+    logic ecall_signal;
+    logic mret_singal;
+
     // IF signals
     logic [31:0] if_id_pc;
     logic [31:0] if_id_instr;
@@ -64,6 +75,8 @@ module pipeline #(
     logic        id_exe_alu_b_mux;
     logic [4:0] id_exe_rf_waddr;
     logic        id_exe_rf_wen;
+    logic [11:0] id_exe_csr_waddr;
+    logic        id_exe_csr_wen;
 
     // EXE signals
     logic [31:0] exe_mem_pc;
@@ -168,8 +181,15 @@ module pipeline #(
         .rf_raddr_a_o(rf_raddr_a_o),
         .rf_raddr_b_o(rf_raddr_b_o),
 
+        // csr signals
+        .csr_rdata_i(csr_rdata_i),
+        .csr_raddr_o(csr_raddr_o),
+
         // signal to controller
         .exe_first_time_o(exe_first_time),
+        .ebreak_o(ebreak_signal),
+        .ecall_o(ecall_signal),
+        .mret_o(mret_singal),
 
         // signals to EXE stage
         .exe_pc_o(id_exe_pc),
@@ -185,7 +205,9 @@ module pipeline #(
         .exe_alu_a_mux_o(id_exe_alu_a_mux),  // 0: rs1, 1: pc
         .exe_alu_b_mux_o(id_exe_alu_b_mux),  // 0: imm, 1: rs2
         .exe_rf_waddr_o(id_exe_rf_waddr),
-        .exe_rf_wen_o(id_exe_rf_wen)
+        .exe_rf_wen_o(id_exe_rf_wen),
+        .exe_csr_waddr_o(id_exe_csr_waddr),
+        .exe_csr_wen_o(id_exe_csr_wen)
     );
 
     /* ========== EXE stage ========== */
@@ -208,6 +230,8 @@ module pipeline #(
         .exe_alu_b_mux_i(id_exe_alu_b_mux),
         .exe_rf_waddr_i(id_exe_rf_waddr),
         .exe_rf_wen_i(id_exe_rf_wen),
+        .exe_csr_waddr_i(id_exe_csr_waddr),
+        .exe_csr_wen_i(id_exe_csr_wen),
 
         // stall signal and flush signal
         .stall_i(exe_stall),
@@ -237,7 +261,12 @@ module pipeline #(
         .alu_result_i (alu_result),
         .alu_operand_a_o (alu_operand_a),
         .alu_operand_b_o (alu_operand_b),
-        .alu_op_o (alu_op)
+        .alu_op_o (alu_op),
+
+        // signals to 
+        .csr_wen_o(csr_wen_o),
+        .csr_wdata_o(csr_wdata_o),
+        .csr_waddr_o(csr_waddr_o)
     );
 
     /* ========== MEM stage ========== */
@@ -359,6 +388,11 @@ module pipeline #(
         .exe_forward_alu_a_o(exe_forward_alu_a),
         .exe_forward_alu_b_o(exe_forward_alu_b),
         .exe_forward_alu_a_mux_o(exe_forward_alu_a_mux),
-        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux)
+        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux),
+
+        // exception signals
+        .ebreak_i(ebreak_signal),
+        .ecall_i(ecall_signal),
+        .mret_i(mret_singal)
     );
 endmodule

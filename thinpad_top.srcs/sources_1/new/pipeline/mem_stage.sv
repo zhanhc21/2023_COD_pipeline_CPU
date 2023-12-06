@@ -157,11 +157,6 @@ module MEM_Stage (
             wb_data_o <= 32'h0;
             busy_o      <= 1'b0;
         end else begin
-            wb_pc_o <= mem_pc_i;
-            wb_instr_o <= mem_instr_i;
-            wb_rf_waddr_o <= mem_rf_waddr_i;
-            wb_rf_wen_o <= mem_rf_wen_i;
-
             if (mem_mem_en_i) begin
                 wb_cyc_o  <= 1'b1;
                 wb_stb_o  <= 1'b1;
@@ -180,6 +175,16 @@ module MEM_Stage (
                         endcase
                     else
                         wb_sel_o <= 4'b1111;
+                    if (wb_ack_i) begin
+                        wb_cyc_o  <= 1'b0;
+                        wb_stb_o  <= 1'b0;
+                        wb_we_o   <= 1'b0;
+                        busy_o    <= 1'b0;
+                        wb_pc_o <= mem_pc_i;
+                        wb_instr_o <= mem_instr_i;
+                        wb_rf_waddr_o <= mem_rf_waddr_i;
+                        wb_rf_wen_o <= mem_rf_wen_i;
+                    end
                 end else begin
                     // L type: read ram
                     wb_we_o   <= 1'b0;
@@ -194,11 +199,15 @@ module MEM_Stage (
                         if (instr_type == LW)
                             wb_rf_wdata_o <= wb_data_i;
                         else case (mem_alu_result_i[1:0])
-                            2'b00: wb_rf_wdata_o <= $signed(wb_data_i[ 7: 0]);
-                            2'b01: wb_rf_wdata_o <= $signed(wb_data_i[15: 8]);
-                            2'b10: wb_rf_wdata_o <= $signed(wb_data_i[23:16]);
-                            2'b11: wb_rf_wdata_o <= $signed(wb_data_i[31:24]);
+                            2'b00: wb_rf_wdata_o <= {24'b0, wb_data_i[7: 0]};
+                            2'b01: wb_rf_wdata_o <= {24'b0, wb_data_i[15: 8]};
+                            2'b10: wb_rf_wdata_o <= {24'b0, wb_data_i[23:16]};
+                            2'b11: wb_rf_wdata_o <= {24'b0, wb_data_i[31:24]};
                         endcase
+                        wb_pc_o <= mem_pc_i;
+                        wb_instr_o <= mem_instr_i;
+                        wb_rf_waddr_o <= mem_rf_waddr_i;
+                        wb_rf_wen_o <= mem_rf_wen_i;
 //                        wb_rf_wdata_o <= wb_data_i >> ((mem_alu_result_i % 4) * 8);
                     end
                 end
@@ -223,6 +232,10 @@ module MEM_Stage (
                 busy_o    <= 1'b0;
                 // add, lui  e.g.
                 wb_rf_wdata_o <= mem_alu_result_i;
+                wb_pc_o <= mem_pc_i;
+                wb_instr_o <= mem_instr_i;
+                wb_rf_waddr_o <= mem_rf_waddr_i;
+                wb_rf_wen_o <= mem_rf_wen_i;
             end
         end
     end
