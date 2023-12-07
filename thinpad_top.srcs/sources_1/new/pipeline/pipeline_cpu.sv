@@ -20,7 +20,7 @@ module pipeline #(
     input wire wbm_ack_dm,
     output reg [ADDR_WIDTH-1:0] wbm_addr_dm,
     output reg [DATA_WIDTH-1:0] wbm_data_o_dm,
-    input reg [DATA_WIDTH-1:0] wbm_data_i_dm,
+    input reg  [DATA_WIDTH-1:0] wbm_data_i_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
     output reg wbm_we_dm,
 
