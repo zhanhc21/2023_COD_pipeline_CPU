@@ -37,24 +37,24 @@ module ICache #(
     cache_table_t record;
     reg cache_ack_reg;
     reg [DATA_WIDTH-1:0] cache_data_reg;
-    always_comb begin
-//        record = cache_regs[cache_addr_i[7:2]];
-        if (cache_en_i) begin
-            if (cache_regs[cache_addr_i[7:2]].valid == 1 && cache_regs[cache_addr_i[7:2]].tag == cache_addr_i[31:8]) begin
-                cache_ack_o = 1'b1;
-                cache_data_o = cache_regs[cache_addr_i[7:2]].data;
-            end else if (cache_ack_reg) begin
-                cache_ack_o = 1'b1;
-                cache_data_o = cache_data_reg;
-            end else begin
-                cache_ack_o = 1'b0;
-                cache_data_o = 32'h00000000;
-            end
-        end else begin
-            cache_ack_o = 1'b0;
-            cache_data_o = 32'h00000000;
-        end
-    end
+//    always_comb begin
+////        record = cache_regs[cache_addr_i[7:2]];
+//        if (cache_en_i) begin
+//            if (cache_regs[cache_addr_i[7:2]].valid == 1 && cache_regs[cache_addr_i[7:2]].tag == cache_addr_i[31:8]) begin
+//                cache_ack_o = 1'b1;
+//                cache_data_o = cache_regs[cache_addr_i[7:2]].data;
+//            end else if (cache_ack_reg) begin
+//                cache_ack_o = 1'b1;
+//                cache_data_o = cache_data_reg;
+//            end else begin
+//                cache_ack_o = 1'b0;
+//                cache_data_o = 32'h00000000;
+//            end
+//        end else begin
+//            cache_ack_o = 1'b0;
+//            cache_data_o = 32'h00000000;
+//        end
+//    end
     
     integer i;
     // to wishbone
@@ -70,6 +70,9 @@ module ICache #(
             for (i=0; i<64; i++)
                 cache_regs[i] <= 57'd0;
         end else begin
+            if (cache_ack_o == 1'b1) begin
+                cache_ack_o <= 1'b0;
+            end else 
             if (cache_en_i && cache_addr_i[31:8]!=cache_regs[cache_addr_i[7:2]].tag && cache_addr_i != 32'h0) begin
                 wb_cyc_o <= 1'b1;
                 wb_stb_o <= 1'b1;
@@ -90,12 +93,15 @@ module ICache #(
                         cache_regs[cache_addr_i[7:2]].tag <= cache_addr_i[31:8];
                         cache_regs[cache_addr_i[7:2]].data <= wb_data_i;
                     end
-                    cache_ack_reg <= 1'b1;
-                    cache_data_reg <= wb_data_i;
+                    cache_ack_o <= 1'b1;
+                    cache_data_o <= wb_data_i;
                 end
+            end else if (cache_en_i && cache_addr_i[31:8]==cache_regs[cache_addr_i[7:2]].tag ) begin
+                cache_ack_o <= 1'b1;
+                cache_data_o <= cache_regs[cache_addr_i[7:2]].data;
             end else begin
-                cache_ack_reg <= 1'b0;
-                cache_data_reg <= 32'h0;
+                cache_ack_o <= 1'b0;
+                cache_data_o <= 32'h0;
                 wb_cyc_o <= 1'b0;
                 wb_stb_o <= 1'b0;
                 wb_addr_o <= 32'b0;
