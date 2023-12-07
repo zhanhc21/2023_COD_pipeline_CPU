@@ -275,7 +275,7 @@ module thinpad_top (
         .wbm_data_o_dm(wbm_dat_o_dm),
         .wbm_data_i_dm(wbm_dat_i_dm),
         .wbm_sel_dm(wbm_sel_dm),
-        .wbm_we_dm (wbm_we_dm)
+        .wbm_we_dm (wbm_we_dm),
 
         .timer_i(timer)
     );
@@ -363,6 +363,15 @@ module thinpad_top (
     logic [3:0] wbs2_sel_o;
     logic wbs2_we_o;
 
+    logic wbs3_cyc_o;
+    logic wbs3_stb_o;
+    logic wbs3_ack_i;
+    logic [31:0] wbs3_adr_o;
+    logic [31:0] wbs3_dat_o;
+    logic [31:0] wbs3_dat_i;
+    logic [3:0] wbs3_sel_o;
+    logic wbs3_we_o;
+
     wb_mux_4 wb_mux (
         .clk(sys_clk),
         .rst(sys_rst),
@@ -425,7 +434,7 @@ module thinpad_top (
         .wbs2_ack_i(wbs2_ack_i),
         .wbs2_err_i('0),
         .wbs2_rty_i('0),
-        .wbs2_cyc_o(wbs2_cyc_o)
+        .wbs2_cyc_o(wbs2_cyc_o),
         
         // Slave interface 3 (to mtime and mtimecmp)
         // range: 0x2000000 ~ 0x2004000

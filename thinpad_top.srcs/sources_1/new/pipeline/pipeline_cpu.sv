@@ -66,7 +66,7 @@ module pipeline #(
         .csr_rdata_o(csr_rdata_i),
         .csr_waddr_i(csr_waddr_o),
         .csr_wdata_i(csr_wdata_o),
-        .csr_wen_i(csr_wen_o)
+        .csr_wen_i(csr_wen_o),
         .timer_i(timer_i)
     );
 
