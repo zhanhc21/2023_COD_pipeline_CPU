@@ -22,7 +22,10 @@ module pipeline #(
     output reg [DATA_WIDTH-1:0] wbm_data_o_dm,
     input reg [DATA_WIDTH-1:0] wbm_data_i_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
-    output reg wbm_we_dm
+    output reg wbm_we_dm,
+
+    // csr time signal
+    input wire timer_i
 );
   
     // regfile signals
@@ -64,6 +67,7 @@ module pipeline #(
         .csr_waddr_i(csr_waddr_o),
         .csr_wdata_i(csr_wdata_o),
         .csr_wen_i(csr_wen_o)
+        .timer_i(timer_i)
     );
 
     // IF signals
