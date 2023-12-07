@@ -5,13 +5,13 @@ module csr_regFile (
     input wire rst_i,
 
     // ID stage read csr
-    input wire [11:0] raddr_i,
-    output reg [31:0] rdata_o,
+    input wire [11:0] csr_raddr_i,
+    output reg [31:0] csr_rdata_o,
 
     // EXE stage write csr
-    input wire        wen_i,
-    input wire [11:0] waddr_i,
-    input wire [31:0] wdata_i,
+    input wire        csr_wen_i,
+    input wire [11:0] csr_waddr_i,
+    input wire [31:0] csr_wdata_i,
 
     // interupt signals from controller
     input wire external_i,
@@ -53,7 +53,6 @@ module csr_regFile (
     logic [31:0] mtimecmp;
 
 
-
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
             mtvec_mode  <= `DIRECT;
@@ -67,7 +66,7 @@ module csr_regFile (
 
             mstatus_ie  <= 1'b0;
             mstatus_pie <= 1'b1;
-            mstatus_pp  <= `U_MODE;
+            mstatus_pp  <= `M_MODE;
 
             mie_tie     <= 1'b0;
             mie_sie     <= 1'b0;
@@ -80,23 +79,23 @@ module csr_regFile (
             mtime       <= 32'b0;
             mtimecmp    <= 32'b0;
         end else begin
-            if (wen_i) begin
-                case (waddr_i)
+            if (csr_wen_i) begin
+                case (csr_waddr_i)
                     `MSTATUS: begin
-                        case (wdata_i[12:11])
+                        case (csr_wdata_i[12:11])
                             `M_MODE: begin
-                                mstatus_ie  <= wdata_i[3];
+                                mstatus_ie  <= csr_wdata_i[3];
                                 // update pie & pp before interruption
-                                if (!wdata_i[3]) begin
-                                    mstatus_pie <= wdata_i[7];
+                                if (!csr_wdata_i[3]) begin
+                                    mstatus_pie <= csr_wdata_i[7];
                                     mstatus_pp  <= `M_MODE;
                                 end
                             end
                             // `S_MODE: begin
                             //     if (`S_MODE >= mstatus_pp) begin
-                            //         mstatus_ie <= wdata_i[1];
-                            //         if (!wdata_i[1]) begin
-                            //             mstatus_pie <= wdata_i[5];
+                            //         mstatus_ie <= csr_wdata_i[1];
+                            //         if (!csr_wdata_i[1]) begin
+                            //             mstatus_pie <= csr_wdata_i[5];
                             //             mstatus_pp  <= `S_MODE;
                             //         end
                             //     end else begin
@@ -105,19 +104,19 @@ module csr_regFile (
                             //         mstatus_pp  <= mstatus_pp;
                             //     end
                             // end
-                            // `U_MODE: begin
-                            //     if (`U_MODE == mstatus_pp) begin
-                            //         mstatus_ie <= wdata_i[0];
-                            //         if (!wdata_i[0]) begin
-                            //             mstatus_pie <= wdata_i[4];
-                            //             mstatus_pp  <= `U_MODE;
-                            //         end
-                            //     end else begin
-                            //         mstatus_ie  <= mstatus_ie;
-                            //         mstatus_pie <= mstatus_pie;
-                            //         mstatus_pp  <= mstatus_pp;
-                            //     end                         
-                            // end
+                            `U_MODE: begin
+                                if (`U_MODE == mstatus_pp) begin
+                                    mstatus_ie <= csr_wdata_i[0];
+                                    if (!csr_wdata_i[0]) begin
+                                        mstatus_pie <= csr_wdata_i[4];
+                                        mstatus_pp  <= `U_MODE;
+                                    end
+                                end else begin
+                                    mstatus_ie  <= mstatus_ie;
+                                    mstatus_pie <= mstatus_pie;
+                                    mstatus_pp  <= mstatus_pp;
+                                end                         
+                            end
                             default: begin
                                 mstatus_ie  <= mstatus_ie;
                                 mstatus_pie <= mstatus_pie;
@@ -126,10 +125,10 @@ module csr_regFile (
                         endcase                                       
                     end
                     `MIE: begin
-                        if (wdata_i[12:11] == `M_MODE) begin
-                            mie_tie <= wdata_i[7];
-                            mie_sie <= wdata_i[3];
-                            mie_eie <= wdata_i[11];
+                        if (csr_wdata_i[12:11] == `M_MODE) begin
+                            mie_tie <= csr_wdata_i[7];
+                            mie_sie <= csr_wdata_i[3];
+                            mie_eie <= csr_wdata_i[11];
                         end else begin
                             mie_tie <= mie_tie;
                             mie_sie <= mie_sie;
@@ -137,42 +136,53 @@ module csr_regFile (
                         end                                                    
                     end
                     `MTVEC: begin
-                        mtvec <= wdata_i;
+                        mtvec <= csr_wdata_i;
                     end
                     `MSCRATCH: begin                            
-                        mscratch <= wdata_i;
+                        mscratch <= csr_wdata_i;
                     end
                     `MEPC: begin             
-                        mepc <= {wdata_i[31:2], 2'b00};
+                        mepc <= {csr_wdata_i[31:2], 2'b00};
                     end
                     `MCAUSE: begin
-                        mcause_interrupt <= wdata_i[31];
-                        mcause_exc_code  <= wdata_i[30:0];                 
+                        mcause_interrupt <= csr_wdata_i[31];
+                        mcause_exc_code  <= csr_wdata_i[30:0];                 
                     end
                     default: begin
                         // do nothing
                     end
                 endcase
-            end else begin
-                case (raddr_i)
-                    `MSTATUS:  rdata_o <= mstatus;
-                    `MIE:      rdata_o <= mie;
-                    `MIP:      rdata_o <= mip;
-                    `MTVEC:    rdata_o <= mtvec;
-                    `MSCRATCH: rdata_o <= mscratch;
-                    `MEPC:     rdata_o <= mepc;
-                    `MCAUSE:   rdata_o <= mcause;
-                    default: begin
-                        // do nothing
-                    end
-                endcase
-            end
-            
+            end 
             // `MIP: begin
             //     mip_tip <= timer_i;
             //     mip_sip <= softwire_i;
             //     mip_eip <= external_i;
             // end
         end
+    end
+
+    always_comb begin
+        case (csr_raddr_i)
+            `MSTATUS:  begin
+                case (mstatus_pp)
+                    `M_MODE: csr_rdata_o <= mstatus;
+                    `U_MODE: csr_rdata_o <= {27'b0, mstatus_pie, 3'b0, mstatus_ie};
+                    default: csr_rdata_o <= mstatus;
+                endcase
+            end
+            `MIE:  begin
+                case (mstatus_pp)
+                    `M_MODE: csr_rdata_o <= mie;
+                    `U_MODE: csr_rdata_o <= {23'b0, mie_eie, 3'b0, mie_tie, 3'b0, mie_sie};
+                    default: csr_rdata_o <= mie;
+                endcase
+            end
+            `MIP:      csr_rdata_o <= mip;
+            `MTVEC:    csr_rdata_o <= mtvec;
+            `MSCRATCH: csr_rdata_o <= mscratch;
+            `MEPC:     csr_rdata_o <= mepc;
+            `MCAUSE:   csr_rdata_o <= mcause;
+            default:   csr_rdata_o <= 32'b0;
+        endcase
     end
 endmodule

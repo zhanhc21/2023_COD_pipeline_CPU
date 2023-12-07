@@ -13,8 +13,8 @@ module ID_Stage (
     // regfile signals
     input wire [31:0] rf_rdata_a_i,
     input wire [31:0] rf_rdata_b_i,
-    output reg [4:0] rf_raddr_a_o,
-    output reg [4:0] rf_raddr_b_o,
+    output reg [ 4:0] rf_raddr_a_o,
+    output reg [ 4:0] rf_raddr_b_o,
 
     // csr signals
     input wire [31:0] csr_rdata_i,
@@ -340,7 +340,7 @@ module ID_Stage (
                     end
                     3'b001: begin // <instruction is CSRRW>
                         alu_op_reg = ALU_ADD;
-                        rs1_reg = 5'b0;
+                        // rs1_reg = 5'b0;
                         rs2_reg = 5'b0;
                         rf_wen_reg = 1;
                         csr_wen_reg = 1;
@@ -518,7 +518,11 @@ module ID_Stage (
             exe_rf_wen_o <= rf_wen_reg;
 
             exe_csr_waddr_o <= csr_raddr_reg;
-            exe_csr_wen_o <= csr_wen_reg;
+            // avoid re-assignment
+            if (exe_pc_o != id_pc_i || exe_instr_o != id_instr_i)
+                exe_csr_wen_o <= csr_wen_reg;
+            else
+                exe_csr_wen_o <= 1'b0;
 
             ebreak_o <= ebreak_reg;
             ecall_o <= ecall_reg;

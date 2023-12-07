@@ -84,10 +84,10 @@ module EXE_Stage (
         CSRRC = 23,
         CSRRS = 24,
         CSRRW = 25,
-        SLTU = 26,
+        SLTU  = 26,
         EBREAK = 27,
         ECALL = 28,
-        MRET = 29
+        MRET  = 29
     } op_type;
     op_type instr_type;
 
@@ -216,7 +216,10 @@ module EXE_Stage (
     always_comb begin
         csr_wen_o = exe_csr_wen_i;
         csr_waddr_o = exe_csr_waddr_i;
-        csr_wdata_o = alu_result_i;
+        if (instr_type != CSRRW)
+            csr_wdata_o = alu_result_i;
+        else
+            csr_wdata_o = exe_rf_rdata_a_i;
     end
 
     always_ff @ (posedge clk_i or posedge rst_i) begin

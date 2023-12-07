@@ -59,11 +59,11 @@ module pipeline #(
     csr_regFile u_csr_regFile (
         .clk_i(clk_i),
         .rst_i(rst_i),
-        .raddr_i(csr_raddr_o),
-        .rdata_o(csr_rdata_i),
-        .waddr_i(csr_waddr_o),
-        .wdata_i(csr_wdata_o),
-        .wen_i(csr_wen_o)
+        .csr_raddr_i(csr_raddr_o),
+        .csr_rdata_o(csr_rdata_i),
+        .csr_waddr_i(csr_waddr_o),
+        .csr_wdata_i(csr_wdata_o),
+        .csr_wen_i(csr_wen_o)
     );
 
     // IF signals
