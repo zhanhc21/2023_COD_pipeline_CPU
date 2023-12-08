@@ -17,7 +17,8 @@ module csr_regFile (
     input wire external_i,
     input wire softwire_i,
     input wire timer_i
-);
+);  
+    // csr regs
     logic [31:0] mtvec;
     logic [ 1:0] mtvec_mode;
     logic [31:2] mtvec_base;
@@ -32,108 +33,121 @@ module csr_regFile (
     assign mcause = {mcause_interrupt, mcause_exc_code};
 
     logic [31:0] mstatus;
-    logic        mstatus_ie;   // Current Interrupt Enable
-    logic        mstatus_pie;  // Previous Interrupt Enable
-    logic [ 1:0] mstatus_pp;   // Previous Privilege Mode
-    assign mstatus = {19'b0, mstatus_pp, 3'b0, mstatus_pie, 3'b0, mstatus_ie, 3'b0};
-
+    // M mode
+    logic        mstatus_mie;
+    logic        mstatus_mpie;
+    logic [ 1:0] mstatus_mpp;  // previous privilege mode
+    // S mode
+    logic        mstatus_sie;
+    logic        mstatus_spie;
+    logic        mstatus_spp;
+    assign mstatus = {19'b0, mstatus_mpp, 2'b0, mstatus_spp, mstatus_mpie, 1'b0, mstatus_spie, 1'b0, mstatus_mie, 1'b0, mstatus_sie, 1'b0};
+    
     logic [31:0] mie;
-    logic        mie_tie;   // timer interrupt enable
-    logic        mie_sie;   // software interrupt enable 
-    logic        mie_eie;   // external interrupt enable
-    assign mie = {20'b0, mie_eie, 3'b0, mie_tie, 3'b0, mie_sie, 3'b0};
+    // M mode
+    logic        mie_mtie;   // timer interrupt enable
+    logic        mie_msie;   // software interrupt enable 
+    logic        mie_meie;   // external interrupt enable
+    // S mode
+    logic        mie_seie;
+    logic        mie_stie;
+    logic        mie_ssie;
+    assign mie = {20'b0, mie_meie, 1'b0, mie_seie, 1'b0, mie_mtie, 1'b0, mie_stie, 1'b0, mie_msie, 1'b0, mie_ssie, 1'b0};
 
     logic [31:0] mip;
-    logic        mip_tip;   // timer interrupt pending
-    logic        mip_sip;   // software interrupt pending
-    logic        mip_eip;   // external interrupt pending
-    assign mip = {20'b0, mip_eip, 3'b0, mip_tip, 3'b0, mip_sip, 3'b0};
-
-    logic [31:0] mtime;
-    logic [31:0] mtimecmp;
+    // M mode
+    logic        mip_mtip;   // timer interrupt pending
+    logic        mip_msip;   // software interrupt pending
+    logic        mip_meip;   // external interrupt pending
+    // S mode
+    logic        mip_seip;
+    logic        mip_stip;
+    logic        mip_ssip;
+    assign mip = {20'b0, mip_meip, 1'b0, mip_seip, 1'b0, mip_mtip, 1'b0, mip_stip, 1'b0, mip_msip, 1'b0, mip_ssip, 1'b0};
+    
+    logic [ 1:0] cur_p_mode;   // current privilege mode
 
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
             mtvec_mode  <= `DIRECT;
             mtvec_base  <= 30'b0;
-
             mscratch    <= 32'b0;
             mepc        <= 32'b0;
-
             mcause_interrupt <= 1'b0;
             mcause_exc_code  <= 31'b0;
 
-            mstatus_ie  <= 1'b0;
-            mstatus_pie <= 1'b1;
-            mstatus_pp  <= `M_MODE;
+            mstatus_mie  <= 1'b0;
+            mstatus_mpie <= 1'b1;
+            mstatus_mpp  <= `M_MODE;
+            mstatus_sie  <= 1'b0;
+            mstatus_spie <= 1'b0;
+            mstatus_spp  <= 1'b0;
 
-            mie_tie     <= 1'b0;
-            mie_sie     <= 1'b0;
-            mie_eie     <= 1'b0;
+            mie_mtie     <= 1'b0;
+            mie_msie     <= 1'b0;
+            mie_meie     <= 1'b0;
+            mie_stie     <= 1'b0;
+            mie_ssie     <= 1'b0;
+            mie_seie     <= 1'b0;
 
-            mip_tip     <= 1'b0;
-            mip_sip     <= 1'b0;
-            mip_eip     <= 1'b0;
-    
-            mtime       <= 32'b0;
-            mtimecmp    <= 32'b0;
+            mip_mtip     <= 1'b0;
+            mip_msip     <= 1'b0;
+            mip_meip     <= 1'b0;
+            mip_stip     <= 1'b0;
+            mip_ssip     <= 1'b0;
+            mip_seip     <= 1'b0;
+
+            cur_p_mode  <= `M_MODE;
         end else begin
             if (csr_wen_i) begin
                 case (csr_waddr_i)
                     `MSTATUS: begin
-                        case (csr_wdata_i[12:11])
+                        case (cur_p_mode)
                             `M_MODE: begin
-                                mstatus_ie  <= csr_wdata_i[3];
-                                // update pie & pp before interruption
-                                if (!csr_wdata_i[3]) begin
-                                    mstatus_pie <= csr_wdata_i[7];
-                                    mstatus_pp  <= `M_MODE;
-                                end
+                                mstatus_mie  <= csr_wdata_i[3];
+                                mstatus_mpie <= csr_wdata_i[7];
+                                mstatus_mpp  <= csr_wdata_i[12:11];
+                                mstatus_sie  <= csr_wdata_i[1];
+                                mstatus_spie <= csr_wdata_i[5];
+                                mstatus_spp  <= csr_wdata_i[8];
                             end
-                            // `S_MODE: begin
-                            //     if (`S_MODE >= mstatus_pp) begin
-                            //         mstatus_ie <= csr_wdata_i[1];
-                            //         if (!csr_wdata_i[1]) begin
-                            //             mstatus_pie <= csr_wdata_i[5];
-                            //             mstatus_pp  <= `S_MODE;
-                            //         end
-                            //     end else begin
-                            //         mstatus_ie  <= mstatus_ie;
-                            //         mstatus_pie <= mstatus_pie;
-                            //         mstatus_pp  <= mstatus_pp;
-                            //     end
-                            // end
-                            `U_MODE: begin
-                                if (`U_MODE == mstatus_pp) begin
-                                    mstatus_ie <= csr_wdata_i[0];
-                                    if (!csr_wdata_i[0]) begin
-                                        mstatus_pie <= csr_wdata_i[4];
-                                        mstatus_pp  <= `U_MODE;
-                                    end
-                                end else begin
-                                    mstatus_ie  <= mstatus_ie;
-                                    mstatus_pie <= mstatus_pie;
-                                    mstatus_pp  <= mstatus_pp;
-                                end                         
+                            `S_MODE: begin
+                                mstatus_sie  <= csr_wdata_i[1];
+                                mstatus_spie <= csr_wdata_i[5];
+                                mstatus_spp  <= csr_wdata_i[8];
                             end
                             default: begin
-                                mstatus_ie  <= mstatus_ie;
-                                mstatus_pie <= mstatus_pie;
-                                mstatus_pp  <= mstatus_pp;
+                                // do nothing
                             end
                         endcase                                       
                     end
                     `MIE: begin
-                        if (csr_wdata_i[12:11] == `M_MODE) begin
-                            mie_tie <= csr_wdata_i[7];
-                            mie_sie <= csr_wdata_i[3];
-                            mie_eie <= csr_wdata_i[11];
-                        end else begin
-                            mie_tie <= mie_tie;
-                            mie_sie <= mie_sie;
-                            mie_eie <= mie_eie;
-                        end                                                    
+                        case (cur_p_mode)
+                            `M_MODE: begin
+                                mie_meie  <= csr_wdata_i[11];
+                                mie_mtie  <= csr_wdata_i[7];
+                                mie_msie  <= csr_wdata_i[3];
+                                mie_seie  <= csr_wdata_i[9];
+                                mie_stie  <= csr_wdata_i[5];
+                                mie_ssie  <= csr_wdata_i[1];
+                            end
+                            `S_MODE: begin
+                                mie_seie  <= csr_wdata_i[9];
+                                mie_stie  <= csr_wdata_i[5];
+                                mie_ssie  <= csr_wdata_i[1];
+                            end
+                            default: begin
+                                // do nothing
+                            end
+                        endcase                                                    
+                    end
+                    `MIP: begin
+                        if (cur_p_mode == `M_MODE) begin
+                            mip_seip <= csr_wdata_i[9];
+                            mip_stip <= csr_wdata_i[5];
+                            mip_ssip <= csr_wdata_i[1];
+                        end
                     end
                     `MTVEC: begin
                         mtvec <= csr_wdata_i;
@@ -153,30 +167,13 @@ module csr_regFile (
                     end
                 endcase
             end 
-            // `MIP: begin
-            //     mip_tip <= timer_i;
-            //     mip_sip <= softwire_i;
-            //     mip_eip <= external_i;
-            // end
         end
     end
 
     always_comb begin
         case (csr_raddr_i)
-            `MSTATUS:  begin
-                case (mstatus_pp)
-                    `M_MODE: csr_rdata_o <= mstatus;
-                    `U_MODE: csr_rdata_o <= {27'b0, mstatus_pie, 3'b0, mstatus_ie};
-                    default: csr_rdata_o <= mstatus;
-                endcase
-            end
-            `MIE:  begin
-                case (mstatus_pp)
-                    `M_MODE: csr_rdata_o <= mie;
-                    `U_MODE: csr_rdata_o <= {23'b0, mie_eie, 3'b0, mie_tie, 3'b0, mie_sie};
-                    default: csr_rdata_o <= mie;
-                endcase
-            end
+            `MSTATUS:  csr_rdata_o <= mstatus;
+            `MIE:      csr_rdata_o <= mie;
             `MIP:      csr_rdata_o <= mip;
             `MTVEC:    csr_rdata_o <= mtvec;
             `MSCRATCH: csr_rdata_o <= mscratch;

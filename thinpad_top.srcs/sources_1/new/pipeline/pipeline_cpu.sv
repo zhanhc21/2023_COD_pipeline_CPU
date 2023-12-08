@@ -279,7 +279,7 @@ module pipeline #(
         .alu_operand_b_o (alu_operand_b),
         .alu_op_o (alu_op),
 
-        // signals to 
+        // signals to csr
         .csr_wen_o(csr_wen_o),
         .csr_wdata_o(csr_wdata_o),
         .csr_waddr_o(csr_waddr_o)
