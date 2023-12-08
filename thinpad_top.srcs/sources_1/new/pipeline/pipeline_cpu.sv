@@ -25,7 +25,7 @@ module pipeline #(
     output reg wbm_we_dm,
 
     // csr time signal
-    input wire timer_i
+    input wire timeout_signal
 );
   
     // regfile signals
@@ -66,8 +66,7 @@ module pipeline #(
         .csr_rdata_o(csr_rdata_i),
         .csr_waddr_i(csr_waddr_o),
         .csr_wdata_i(csr_wdata_o),
-        .csr_wen_i(csr_wen_o),
-        .timer_i(timer_i)
+        .csr_wen_i(csr_wen_o)
     );
 
     // IF signals
@@ -410,6 +409,7 @@ module pipeline #(
         // exception signals
         .ebreak_i(ebreak_signal),
         .ecall_i(ecall_signal),
-        .mret_i(mret_singal)
+        .mret_i(mret_singal),
+        .timeout_i(timeout_signal)
     );
 endmodule

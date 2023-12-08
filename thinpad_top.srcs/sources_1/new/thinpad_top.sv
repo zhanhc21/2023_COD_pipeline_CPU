@@ -277,7 +277,7 @@ module thinpad_top (
         .wbm_sel_dm(wbm_sel_dm),
         .wbm_we_dm (wbm_we_dm),
 
-        .timer_i(timer)
+        .timeout_signal(timer)
     );
 
     /* =========== wb Master end =========== */

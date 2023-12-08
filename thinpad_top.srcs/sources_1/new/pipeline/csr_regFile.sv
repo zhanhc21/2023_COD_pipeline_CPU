@@ -11,12 +11,12 @@ module csr_regFile (
     // EXE stage write csr
     input wire        csr_wen_i,
     input wire [11:0] csr_waddr_i,
-    input wire [31:0] csr_wdata_i,
+    input wire [31:0] csr_wdata_i
 
     // interupt signals from controller
-    input wire external_i,
-    input wire softwire_i,
-    input wire timer_i
+    // input wire external_i,
+    // input wire softwire_i,
+    // input wire timer_i
 );  
     // csr regs
     logic [31:0] mtvec;

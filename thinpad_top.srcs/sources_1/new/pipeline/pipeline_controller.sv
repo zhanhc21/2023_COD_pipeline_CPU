@@ -56,7 +56,10 @@ module pipeline_controller(
     // exception signals
     input wire ebreak_i,
     input wire ecall_i,
-    input wire mret_i
+    input wire mret_i,
+    input wire timeout_i
+    // TODO
+    
 );
     // structure(memory) hazard
     always_comb begin

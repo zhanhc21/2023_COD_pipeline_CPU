@@ -20,7 +20,8 @@ module csr_time (
     typedef enum logic [1:0] {
         IDLE = 0,
         DONE = 1
-    } state;
+    } state_t;
+    state_t state;
 
     // read
     always_comb begin
@@ -43,7 +44,7 @@ module csr_time (
             mtimecmp <= 64'b0;
             wb_ack_o <= 1'b0;
         end else begin
-            case (stage)
+            case (state)
                 IDLE: begin
                     if (wb_stb_i & wb_cyc_i) begin
                         if (wb_we_i) begin
