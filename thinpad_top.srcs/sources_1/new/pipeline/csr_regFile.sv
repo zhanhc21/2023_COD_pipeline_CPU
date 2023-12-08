@@ -11,13 +11,25 @@ module csr_regFile (
     // EXE stage write csr
     input wire        csr_wen_i,
     input wire [11:0] csr_waddr_i,
-    input wire [31:0] csr_wdata_i
+    input wire [31:0] csr_wdata_i,
 
-    // interupt signals from controller
+    // signals from controller
+    input wire        trap_en_i,      // if int/exc occurred
+    input wire        recover_i,
+    input wire        trap_type_i,    // 1 interrupt  0 exception
+    input wire [30:0] trap_code_i, 
+    input wire [31:0] trap_pc_i,      // pc of trapped instr
+    input wire [31:0] trap_val_i,     // addr_exc: addr / illegal_instr: instr / else: 0
+    
+    
+    // interupt signals
     // input wire external_i,
     // input wire softwire_i,
     // input wire timer_i
+
+    output reg [31:0] csr_pc_o
 );  
+
     // csr regs
     logic [31:0] mtvec;
     logic [ 1:0] mtvec_mode;
@@ -166,7 +178,28 @@ module csr_regFile (
                         // do nothing
                     end
                 endcase
-            end 
+            end else begin
+                // trap process
+                if (trap_en_i) begin
+                    mcause_interrupt <= trap_type_i;
+                    mcause_exc_code  <= trap_code_i;
+                    // point to next instr
+                    if (trap_type_i == `EBREAK || trap_type_i == `ECALL_U)
+                        mepc         <= trap_pc_i + 4;
+                    else
+                        mepc         <= trap_pc_i;
+                    mscratch         <= trap_val_i;
+                    if (!trap_type_i) begin
+                        mstatus_mpie <= mstatus_mie;
+                        mstatus_mie  <= 1'b0;
+                        mstatus_mpp  <= cur_p_mode;
+                    end
+                end
+                if (recover_i) begin
+                    mstatus_mie  <= mstatus_mpie;
+                    mstatus_mpie <= 1'b1;
+                end
+            end
         end
     end
 
@@ -181,5 +214,18 @@ module csr_regFile (
             `MCAUSE:   csr_rdata_o <= mcause;
             default:   csr_rdata_o <= 32'b0;
         endcase
+        if (trap_en_i) begin
+            if (mtvec_mode == `DIRECT)
+                csr_pc_o = {2'b0, mtvec_base};
+            else
+                if (trap_type_i) // interrupt
+                    csr_pc_o = {2'b0, mtvec_base} + 4 * mcause_exc_code;
+                else
+                    csr_pc_o = {2'b0, mtvec_base};
+        end else if (recover_i) begin
+            csr_pc_o = mepc;
+        end else begin
+            csr_pc_o = 32'b0;
+        end
     end
 endmodule

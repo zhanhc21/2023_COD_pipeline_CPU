@@ -55,9 +55,25 @@ module pipeline #(
     logic [11:0] csr_waddr_o;
     logic        csr_wen_o;
 
-    logic ebreak_signal;
-    logic ecall_signal;
-    logic mret_singal;
+    logic        trap_en_signal;
+    logic        trap_type_signal;    // 1 interrupt  0 exception
+    logic [30:0] trap_code_signal;
+    logic [31:0] trap_val_signal;
+    logic [31:0] trap_pc_signal;
+ 
+    // exception
+    logic        ebreak_signal;
+    logic        ecall_signal;
+    logic        exc_en_signal;
+    logic [30:0] exc_code_signal;
+    logic [31:0] exc_pc_signal;
+    logic [31:0] exc_val_signal;
+
+    // interrupt
+    // timeout_signal
+
+    logic        mret_singal;
+    logic [31:0] csr_if_pc;
 
     csr_regFile u_csr_regFile (
         .clk_i(clk_i),
@@ -66,7 +82,14 @@ module pipeline #(
         .csr_rdata_o(csr_rdata_i),
         .csr_waddr_i(csr_waddr_o),
         .csr_wdata_i(csr_wdata_o),
-        .csr_wen_i(csr_wen_o)
+        .csr_wen_i(csr_wen_o),
+        .recover_i(mret_singal),
+        .trap_en_i(trap_en_signal),
+        .trap_code_i(trap_code_signal),
+        .trap_type_i(trap_type_signal),
+        .trap_pc_i(trap_pc_signal),
+        .trap_val_i(trap_val_signal),
+        .csr_pc_o(csr_if_pc)
     );
 
     // IF signals
@@ -161,6 +184,8 @@ module pipeline #(
         // pc mux signals
         .pc_from_exe_i(exe_if_pc),
         .pc_mux_i(exe_if_pc_mux), // 0: pc+4, 1: exe_pc
+        .pc_from_csr_i(csr_if_pc),
+        .pc_recover_i(mret_singal),
         
         // wishbone signals
         .wb_cyc_o(wbm_cyc_im),
@@ -205,6 +230,11 @@ module pipeline #(
         .ebreak_o(ebreak_signal),
         .ecall_o(ecall_signal),
         .mret_o(mret_singal),
+        // exception signals
+        .exc_en_o   (exc_en_signal),
+        .exc_code_o (exc_code_signal),
+        .exc_pc_o   (exc_pc_signal),
+        .exc_val_o  (exc_val_signal),
 
         // signals to EXE stage
         .exe_pc_o(id_exe_pc),
@@ -409,7 +439,19 @@ module pipeline #(
         // exception signals
         .ebreak_i(ebreak_signal),
         .ecall_i(ecall_signal),
+        .exc_en_i(exc_en_signal),
+        .exc_code_i(exc_code_signal),
+        .exc_pc_i(exc_pc_signal),
+        .exc_val_i(exc_val_signal),
+
+        // interrupt signals
+        .timeout_i(timeout_signal),
         .mret_i(mret_singal),
-        .timeout_i(timeout_signal)
+
+        .trap_en_o(trap_en_signal),
+        .trap_code_o(trap_code_signal),
+        .trap_type_o(trap_type_signal),
+        .trap_pc_o(trap_pc_signal),
+        .trap_val_o(trap_val_signal)
     );
 endmodule

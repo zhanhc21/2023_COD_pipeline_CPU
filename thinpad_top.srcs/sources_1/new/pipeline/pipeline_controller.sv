@@ -53,13 +53,22 @@ module pipeline_controller(
     output reg        exe_forward_alu_a_mux_o,
     output reg        exe_forward_alu_b_mux_o,
 
-    // exception signals
-    input wire ebreak_i,
-    input wire ecall_i,
+    // interrupt signals
     input wire mret_i,
-    input wire timeout_i
-    // TODO
-    
+    input wire timeout_i,
+    // exception signals
+    input wire ecall_i,
+    input wire ebreak_i,
+    input wire exc_en_i,
+    input wire [30:0] exc_code_i,
+    input wire [31:0] exc_pc_i,
+    input wire [31:0] exc_val_i,
+
+    output reg        trap_en_o,
+    output reg        trap_type_o,
+    output reg [30:0] trap_code_o,
+    output reg [31:0] trap_pc_o,
+    output reg [31:0] trap_val_o
 );
     // structure(memory) hazard
     always_comb begin
@@ -135,9 +144,10 @@ module pipeline_controller(
         end  
     end
     
-    // csr
-    always_comb begin
-        
-    end
-
+    // 暂时只加入了异常判断
+    assign trap_type_o = 0;      // exception
+    assign trap_en_o = exc_en_i; // | int_en_i
+    assign trap_code_o = exc_code_i;
+    assign trap_pc_o = exc_pc_i;
+    assign trap_val_o = exc_val_i;
 endmodule

@@ -1,3 +1,5 @@
+`include "csr.vh"
+
 module ID_Stage (
     input wire clk_i,
     input wire rst_i,
@@ -25,6 +27,11 @@ module ID_Stage (
     output reg ebreak_o,
     output reg ecall_o,
     output reg mret_o,
+    // exception signals
+    output reg        exc_en_o,
+    output reg [30:0] exc_code_o,
+    output reg [31:0] exc_pc_o,
+    output reg [31:0] exc_val_o,
 
     // signals to EXE stage
     output reg [31:0] exe_pc_o,
@@ -68,7 +75,7 @@ module ID_Stage (
     reg [31:0] rdata_b_reg;
 
     reg mem_en_reg;  // 1: use
-    reg mem_wen_reg;  // 1: enable
+    reg mem_wen_reg; // 1: enable
     reg rf_wen_reg;  // 1: enable
 
     reg [31:0] csr_rdata_reg;
@@ -80,6 +87,11 @@ module ID_Stage (
     reg ebreak_reg;
     reg ecall_reg;
     reg mret_reg;
+
+    reg        exc_en_reg;
+    reg [31:0] exc_pc_reg;
+    reg [31:0] exc_val_reg;
+    reg [30:0] exc_code_reg;
 
     imm_gen u_imm_gen(
         .inst(inst_reg),
@@ -189,6 +201,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_ADDI_ANDI_ORI_SLLI_SRLI: begin
                 inst_type_reg = TYPE_I;
@@ -221,6 +237,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_AUIPC: begin
                 inst_type_reg = TYPE_U;
@@ -234,6 +254,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_BEQ_BNE: begin
                 inst_type_reg = TYPE_B;
@@ -247,6 +271,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_JAL: begin
                 inst_type_reg = TYPE_J;
@@ -260,6 +288,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_JALR: begin  // NOTE: pc = alu_result & ~1
                 inst_type_reg = TYPE_I;
@@ -274,6 +306,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_LB_LW: begin
                 inst_type_reg = TYPE_I;
@@ -288,6 +324,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_LUI: begin
                 inst_type_reg = TYPE_U;
@@ -303,6 +343,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_SB_SW: begin
                 inst_type_reg = TYPE_S;
@@ -316,6 +360,10 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_val_reg  = 0;
+                exc_code_reg = `NOP;
             end
             OPCODE_CSRRC_CSRRS_CSRRW_EBREAK_ECALL_MRET: begin
                 inst_type_reg = TYPE_I;
@@ -328,6 +376,10 @@ module ID_Stage (
                         ebreak_reg = 0;
                         ecall_reg = 0;
                         mret_reg = 0;
+                        exc_en_reg   = 0;
+                        exc_pc_reg   = 0;
+                        exc_val_reg  = 0;
+                        exc_code_reg = `NOP;
                     end
                     3'b010: begin // <instruction is CSRRS>
                         alu_op_reg = ALU_OR;
@@ -337,6 +389,10 @@ module ID_Stage (
                         ebreak_reg = 0;
                         ecall_reg = 0;
                         mret_reg = 0;
+                        exc_en_reg   = 0;
+                        exc_pc_reg   = 0;
+                        exc_val_reg  = 0;
+                        exc_code_reg = `NOP;
                     end
                     3'b001: begin // <instruction is CSRRW>
                         alu_op_reg = ALU_ADD;
@@ -347,6 +403,10 @@ module ID_Stage (
                         ebreak_reg = 0;
                         ecall_reg = 0;
                         mret_reg = 0;
+                        exc_en_reg   = 0;
+                        exc_pc_reg   = 0;
+                        exc_val_reg  = 0;
+                        exc_code_reg = `NOP;
                     end
                     3'b000: begin
                         case(funct12_reg)
@@ -354,21 +414,38 @@ module ID_Stage (
                                 ebreak_reg = 1;
                                 ecall_reg = 0;
                                 mret_reg = 0;
+                                exc_en_reg   = 1;
+                                exc_pc_reg   = pc_reg;
+                                exc_val_reg  = 0;
+                                exc_code_reg = `EBREAK;
                             end
                             12'b000000000000: begin // <instruction is ECALL>
                                 ebreak_reg = 0;
                                 ecall_reg = 1;
                                 mret_reg = 0;
+                                exc_en_reg   = 1;
+                                exc_pc_reg   = pc_reg;
+                                exc_val_reg  = 0;
+                                exc_code_reg = `ECALL_U;
                             end
                             12'b001100000010: begin // <instruction is MRET>
                                 ebreak_reg = 0;
                                 ecall_reg = 0;
                                 mret_reg = 1;
+                                exc_en_reg   = 0;
+                                exc_pc_reg   = 0;
+                                exc_val_reg  = 0;
+                                exc_code_reg = `NOP;
                             end
                             default: begin
                                 ebreak_reg = 0;
                                 ecall_reg = 0;
                                 mret_reg = 0;
+                                // invalid instruction
+                                exc_en_reg   = 1;
+                                exc_pc_reg   = pc_reg;
+                                exc_val_reg  = inst_reg;
+                                exc_code_reg = `ILLEGAL_INSTR;
                             end
                         endcase
                         alu_op_reg = ALU_DEFAULT;
@@ -389,6 +466,11 @@ module ID_Stage (
                         ebreak_reg = 0;
                         ecall_reg = 0;
                         mret_reg = 0;
+                        // invalid instruction
+                        exc_en_reg   = 1;
+                        exc_pc_reg   = pc_reg;
+                        exc_val_reg  = inst_reg;
+                        exc_code_reg = `ILLEGAL_INSTR;
                     end
                 endcase
                 alu_a_mux_reg = 0;
@@ -411,6 +493,11 @@ module ID_Stage (
                 ebreak_reg = 0;
                 ecall_reg = 0;
                 mret_reg = 0;
+                // invalid instruction
+                exc_en_reg   = 1;
+                exc_pc_reg   = pc_reg;
+                exc_val_reg  = inst_reg;
+                exc_code_reg = `ILLEGAL_INSTR;
             end
         endcase
     end
@@ -438,6 +525,12 @@ module ID_Stage (
             ebreak_o <= 1'b0;
             ecall_o <= 1'b0;
             mret_o <= 1'b0;
+            
+            exc_en_o   <= 1'b0;
+            exc_pc_o   <= 32'b0;
+            exc_code_o <= `NOP;
+            exc_val_o  <= 32'b0;
+
         end else if (stall_i) begin
             exe_pc_o <= exe_pc_o;
             exe_instr_o <= exe_instr_o;
@@ -525,8 +618,13 @@ module ID_Stage (
                 exe_csr_wen_o <= 1'b0;
 
             ebreak_o <= ebreak_reg;
-            ecall_o <= ecall_reg;
-            mret_o <= mret_reg;
+            ecall_o  <= ecall_reg;
+            mret_o   <= mret_reg;
+
+            exc_en_o   <= exc_en_reg;
+            exc_pc_o   <= exc_pc_reg;
+            exc_code_o <= exc_code_reg;
+            exc_val_o  <= exc_val_reg;
         end
     end
 
