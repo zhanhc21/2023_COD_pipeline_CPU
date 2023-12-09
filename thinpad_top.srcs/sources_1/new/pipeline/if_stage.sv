@@ -31,7 +31,11 @@ module IF_Stage #(
     reg [31:0] pc_reg;
     reg [31:0] pc_now_reg;
     reg [31:0] inst_reg;
-
+    typedef enum logic [2:0] {
+        STATE_IDLE = 0,
+        STATE_READ = 1
+    } state_t;
+    state_t state;
     always_ff @ (posedge clk_i) begin
         if (rst_i) begin
             wb_cyc_o <= 1'b0;
@@ -44,6 +48,7 @@ module IF_Stage #(
             pc_reg <= 32'h80000000;
             pc_now_reg <= 32'h80000000;
             inst_reg <= 32'b0;
+            state <= STATE_IDLE;
         end else if (stall_i) begin
             wb_cyc_o <= 1'b0;
             wb_stb_o <= 1'b0;
@@ -67,31 +72,35 @@ module IF_Stage #(
             pc_now_reg <= 32'b0;
             inst_reg <= 32'b0;
         end else begin
-            wb_cyc_o <= 1'b1;
-            wb_stb_o <= 1'b1;
-            wb_we_o <= 1'b0;
-            wb_sel_o <= 4'b1111;
-            if (pc_mux_i == 1) begin
-                wb_addr_o <= pc_from_exe_i;
-                pc_reg <= pc_from_exe_i;
-                pc_now_reg <= 32'h0;
-                inst_reg <= 32'h0;
-            end else begin
-                wb_addr_o <= pc_reg;
-            end
-
-            if (wb_ack_i && (!pc_mux_i || wb_addr_o == pc_from_exe_i)) begin
-                wb_cyc_o <= 1'b0;
-                wb_stb_o <= 1'b0;
+            if (state == STATE_IDLE) begin
+                wb_cyc_o <= 1'b1;
+                wb_stb_o <= 1'b1;
                 wb_we_o <= 1'b0;
-                wb_sel_o <= 4'b0000;
-                if (wb_data_i) begin
-                    inst_reg <= wb_data_i;
-                    pc_now_reg <= pc_reg;
-                    pc_reg <= pc_reg + 32'h00000004;
+                wb_sel_o <= 4'b1111;
+                if (pc_mux_i == 1) begin
+                    wb_addr_o <= pc_from_exe_i;
+                    pc_reg <= pc_from_exe_i;
+                    pc_now_reg <= 32'h0;
+                    inst_reg <= 32'h0;
                 end else begin
-                    pc_now_reg <= pc_now_reg;
-                    pc_reg <= pc_reg;
+                    wb_addr_o <= pc_reg;
+                end
+                state <= STATE_READ;
+            end else begin
+                if (wb_ack_i && wb_addr_o == pc_reg &&(!pc_mux_i || wb_addr_o == pc_from_exe_i)) begin
+                    wb_cyc_o <= 1'b0;
+                    wb_stb_o <= 1'b0;
+                    wb_we_o <= 1'b0;
+                    wb_sel_o <= 4'b0000;
+                    if (wb_data_i) begin
+                        inst_reg <= wb_data_i;
+                        pc_now_reg <= pc_reg;
+                        pc_reg <= pc_reg + 32'h00000004;
+                    end else begin
+                        pc_now_reg <= pc_now_reg;
+                        pc_reg <= pc_reg;
+                    end
+                    state <= STATE_IDLE;
                 end
             end
         end
