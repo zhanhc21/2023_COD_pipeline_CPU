@@ -49,7 +49,7 @@ module IF_Stage #(
             pc_now_reg <= 32'h80000000;
             inst_reg <= 32'b0;
             state <= STATE_IDLE;
-        end else if (stall_i) begin
+        end else if (stall_i && state == STATE_IDLE) begin
             wb_cyc_o <= 1'b0;
             wb_stb_o <= 1'b0;
             wb_addr_o <= 32'b0;
@@ -60,6 +60,7 @@ module IF_Stage #(
             pc_reg <= pc_reg;
             pc_now_reg <= pc_now_reg;
             inst_reg <= inst_reg;
+            state <= STATE_IDLE;
         end else if (flush_i) begin
             wb_cyc_o <= 1'b0;
             wb_stb_o <= 1'b0;
@@ -71,6 +72,11 @@ module IF_Stage #(
             pc_reg <= pc_reg;
             pc_now_reg <= 32'b0;
             inst_reg <= 32'b0;
+            if (pc_mux_i == 1) begin
+                pc_reg <= pc_from_exe_i;
+                pc_now_reg <= 32'h0;
+            end
+            state <= STATE_IDLE;
         end else begin
             if (state == STATE_IDLE) begin
                 wb_cyc_o <= 1'b1;
@@ -87,7 +93,8 @@ module IF_Stage #(
                 end
                 state <= STATE_READ;
             end else begin
-                if (wb_ack_i && wb_addr_o == pc_reg &&(!pc_mux_i || wb_addr_o == pc_from_exe_i)) begin
+
+                if (wb_ack_i) begin
                     wb_cyc_o <= 1'b0;
                     wb_stb_o <= 1'b0;
                     wb_we_o <= 1'b0;

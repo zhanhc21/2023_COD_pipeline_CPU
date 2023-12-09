@@ -24,4 +24,5 @@ module reg_file (
     end
     assign rdata_a = regs[raddr_a];
     assign rdata_b = regs[raddr_b];
+    assign regs[0] = 32'h0;
 endmodule

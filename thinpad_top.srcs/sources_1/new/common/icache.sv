@@ -93,9 +93,9 @@ module ICache #(
                 if (wb_ack_i) begin
                     if (
 //                    wb_data_i[6:0] == 7'b0110111 || wb_data_i[6:0] == 7'b0010111 // lui auipc 
-                        wb_data_i[6:0] == 7'b0010011 // && wb_data_i[14:12] == 3'b000
+//                        wb_data_i[6:0] == 7'b0010011 && wb_data_i[14:12] == 3'b000
                         // wb_data_i[6:0] == 7'b1100011
-                    )
+                    0)
                     begin
                         cache_regs[cache_addr_i[7:2]].valid <= 1'b1;
                         cache_regs[cache_addr_i[7:2]].tag <= cache_addr_i[31:8];
