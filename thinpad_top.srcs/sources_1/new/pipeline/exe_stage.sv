@@ -236,7 +236,7 @@ module EXE_Stage (
         end else begin
             if (stall_i == 1'b0 && 
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
-                if (exe_pc_i == 32'h8000045c) begin
+                if (exe_pc_i == 32'h800000c0) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 if (exe_pc_i == 32'h800004bc) begin

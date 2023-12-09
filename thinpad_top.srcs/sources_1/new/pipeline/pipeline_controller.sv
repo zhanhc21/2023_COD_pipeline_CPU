@@ -75,7 +75,7 @@ module pipeline_controller(
             id_stall_o = 1'b1;
             exe_stall_o = 1'b1;
         end else if (exe_if_pc_mux_i == 1'b1) begin  // branch and jump, flush ID & EXE
-//            if_flush_o = 1'b1;
+            if_flush_o = 1'b1;
             id_flush_o = 1'b1;
 //            exe_flush_o = 1'b1;
         end 

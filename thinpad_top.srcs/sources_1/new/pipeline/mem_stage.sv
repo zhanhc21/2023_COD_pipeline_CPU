@@ -176,6 +176,10 @@ module MEM_Stage (
                     else
                         wb_sel_o <= 4'b1111;
                     if (wb_ack_i) begin
+                        wb_cyc_o  <= 1'b0;
+                        wb_stb_o  <= 1'b0;
+                        wb_we_o   <= 1'b0;
+                        busy_o    <= 1'b0;
                         wb_pc_o <= mem_pc_i;
                         wb_instr_o <= mem_instr_i;
                         wb_rf_waddr_o <= mem_rf_waddr_i;
