@@ -23,6 +23,10 @@ module IF_Stage #(
     output reg [DATA_WIDTH/8-1:0] wb_sel_o,
     output reg wb_we_o,
 
+    // BTB signals
+    output reg [31:0] if_now_pc_o,
+    input wire [31:0] if_next_pc_i,
+
     // signals to ID stage
     output reg [31:0] id_pc_o,
     output reg [31:0] id_instr_o
@@ -103,7 +107,7 @@ module IF_Stage #(
                     if (wb_data_i) begin
                         inst_reg <= wb_data_i;
                         pc_now_reg <= pc_reg;
-                        pc_reg <= pc_reg + 32'h00000004;
+                        pc_reg <= if_next_pc_i;
                     end else begin
                         pc_now_reg <= pc_now_reg;
                         pc_reg <= pc_reg;
@@ -123,5 +127,7 @@ module IF_Stage #(
             id_instr_o <= inst_reg;
         end
     end
+    
+    assign if_now_pc_o = pc_now_reg;
 
 endmodule

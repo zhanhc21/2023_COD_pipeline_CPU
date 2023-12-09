@@ -53,7 +53,13 @@ module EXE_Stage (
     // signals to CSR
     output reg         csr_wen_o,
     output reg  [31:0] csr_wdata_o,
-    output reg  [11:0] csr_waddr_o
+    output reg  [11:0] csr_waddr_o,
+
+    // signals to BTB
+    output reg [31:0] exe_branch_src_pc_o,
+    output reg [31:0] exe_branch_tgt_pc_o,
+    output reg        exe_branch_en_o,
+    output reg        exe_branch_mispredict_o
 ); 
 
     logic [6:0]  opcode;
