@@ -32,7 +32,7 @@ module ICache #(
     } cache_table_t;
     
     // Buffer index: 6 bits(2^6=64) ||valid: 1 bit| tag: 24| data: 32|| 
-    cache_table_t [56:0] cache_regs;
+    cache_table_t [63:0] cache_regs;
 
     cache_table_t record;
     reg cache_ack_reg;
