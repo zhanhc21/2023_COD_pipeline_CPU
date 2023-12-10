@@ -1,4 +1,4 @@
-`include "csr.vh"
+`include "../include/csr.vh"
 
 module csr_regFile (
     input wire clk_i,
@@ -13,27 +13,29 @@ module csr_regFile (
     input wire [11:0] csr_waddr_i,
     input wire [31:0] csr_wdata_i,
 
-    // signals from controller
-    input wire        trap_en_i,      // if int/exc occurred
-    input wire        recover_i,
-    input wire        trap_type_i,    // 1 interrupt  0 exception
-    input wire [30:0] trap_code_i, 
-    input wire [31:0] trap_pc_i,      // pc of trapped instr
-    input wire [31:0] trap_val_i,     // addr_exc: addr / illegal_instr: instr / else: 0
-    
+    input wire        mret_i,
+
+    // signals from mem stage
+    input wire        exc_en_i,      // if exc occurred
+    input wire [30:0] exc_code_i, 
+    input wire [31:0] exc_pc_i,      // pc of exc instr from mem stage
     
     // interupt signals
     // input wire external_i,
     // input wire softwire_i,
-    // input wire timer_i
+    input wire        timer_i,
+    // pc of time insterrupt instr from if stage
+    input wire [31:0] int_pc_i,
 
-    output reg [31:0] csr_pc_o
+    output reg [31:0] csr_pc_o,
+    output reg        pc_mux_exc_o,
+    output reg        pc_mux_ret_o
 );  
 
     // csr regs
     logic [31:0] mtvec;
     logic [ 1:0] mtvec_mode;
-    logic [31:2] mtvec_base;
+    logic [29:0] mtvec_base;
     assign mtvec = {mtvec_base, mtvec_mode};
 
     logic [31:0] mscratch;
@@ -76,8 +78,8 @@ module csr_regFile (
     logic        mip_stip;
     logic        mip_ssip;
     assign mip = {20'b0, mip_meip, 1'b0, mip_seip, 1'b0, mip_mtip, 1'b0, mip_stip, 1'b0, mip_msip, 1'b0, mip_ssip, 1'b0};
-    
-    logic [ 1:0] cur_p_mode;   // current privilege mode
+    // current privilege mode
+    logic [ 1:0] cur_p_mode;   
 
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
@@ -162,7 +164,8 @@ module csr_regFile (
                         end
                     end
                     `MTVEC: begin
-                        mtvec <= csr_wdata_i;
+                        mtvec_base <= csr_wdata_i[31:2];
+                        mtvec_mode <= csr_wdata_i[1:0];
                     end
                     `MSCRATCH: begin                            
                         mscratch <= csr_wdata_i;
@@ -179,25 +182,47 @@ module csr_regFile (
                     end
                 endcase
             end else begin
-                // trap process
-                if (trap_en_i) begin
-                    mcause_interrupt <= trap_type_i;
-                    mcause_exc_code  <= trap_code_i;
-                    // point to next instr
-                    if (trap_type_i == `EBREAK || trap_type_i == `ECALL_U)
-                        mepc         <= trap_pc_i + 4;
-                    else
-                        mepc         <= trap_pc_i;
-                    mscratch         <= trap_val_i;
-                    if (!trap_type_i) begin
-                        mstatus_mpie <= mstatus_mie;
-                        mstatus_mie  <= 1'b0;
-                        mstatus_mpp  <= cur_p_mode;
+                // exception process
+                if (exc_en_i) begin
+                    mcause_interrupt <= `EXCEPTION;
+                    mcause_exc_code  <= exc_code_i;
+
+                    mstatus_mpie <= mstatus_mie;
+                    mstatus_mie  <= 1'b0;
+                    mstatus_mpp  <= cur_p_mode;
+
+                    if (exc_code_i == `ECALL_U) begin
+                        case (cur_p_mode)
+                            `U_MODE: mcause_exc_code <= `ECALL_U;
+                            `S_MODE: mcause_exc_code <= `ECALL_S;
+                            `M_MODE: mcause_exc_code <= `ECALL_M;
+                            default: begin
+                                // do nothing
+                            end
+                        endcase
                     end
-                end
-                if (recover_i) begin
+                    // point to next instr
+                    if (exc_code_i == `EBREAK || exc_code_i == `ECALL_U) begin
+                        mepc <= exc_pc_i + 4;
+                    end else begin
+                        mepc <= exc_pc_i;
+                    end
+                end else if (timer_i) begin
+                    // time interrupt process
+                    mcause_interrupt <= `INTERRUPT;
+                    mcause_exc_code  <= `MACHINE_TIMER_INTERRUPT;
+                    mip_mtip         <= 1'b1;
+                    mie_mtie         <= 1'b1;
+                    mepc             <= int_pc_i;
+                    mstatus_mpie     <= mstatus_mie;
+                    mstatus_mie      <= 1'b0;
+                    mstatus_mpp      <= cur_p_mode;
+                end else if (mret_i) begin
+                    cur_p_mode   <= mstatus_mpp;
                     mstatus_mie  <= mstatus_mpie;
                     mstatus_mpie <= 1'b1;
+                    mip_mtip     <= 1'b0;
+                    mie_mtie     <= 1'b0;
                 end
             end
         end
@@ -205,27 +230,36 @@ module csr_regFile (
 
     always_comb begin
         case (csr_raddr_i)
-            `MSTATUS:  csr_rdata_o <= mstatus;
-            `MIE:      csr_rdata_o <= mie;
-            `MIP:      csr_rdata_o <= mip;
-            `MTVEC:    csr_rdata_o <= mtvec;
-            `MSCRATCH: csr_rdata_o <= mscratch;
-            `MEPC:     csr_rdata_o <= mepc;
-            `MCAUSE:   csr_rdata_o <= mcause;
-            default:   csr_rdata_o <= 32'b0;
+            `MSTATUS:  csr_rdata_o = mstatus;
+            `MIE:      csr_rdata_o = mie;
+            `MIP:      csr_rdata_o = mip;
+            `MTVEC:    csr_rdata_o = mtvec;
+            `MSCRATCH: csr_rdata_o = mscratch;
+            `MEPC:     csr_rdata_o = mepc;
+            `MCAUSE:   csr_rdata_o = mcause;
+            default:   csr_rdata_o = 32'b0;
         endcase
-        if (trap_en_i) begin
-            if (mtvec_mode == `DIRECT)
-                csr_pc_o = {2'b0, mtvec_base};
-            else
-                if (trap_type_i) // interrupt
-                    csr_pc_o = {2'b0, mtvec_base} + 4 * mcause_exc_code;
-                else
-                    csr_pc_o = {2'b0, mtvec_base};
-        end else if (recover_i) begin
+        // pc to if stage
+        if (exc_en_i) begin
+            csr_pc_o     = {mtvec_base, 2'b0};
+            pc_mux_exc_o = 1'b1;
+            pc_mux_ret_o = 1'b0;
+        end else if (timer_i) begin
+            if (mtvec_mode == `DIRECT) begin
+                csr_pc_o = {mtvec_base, 2'b0};
+            end else begin
+                csr_pc_o = {mtvec_base, 2'b0} + 4 * mcause_exc_code;
+            end
+            pc_mux_exc_o = 1'b1;
+            pc_mux_ret_o = 1'b0;
+        end else if (mret_i) begin
             csr_pc_o = mepc;
+            pc_mux_exc_o = 1'b0;
+            pc_mux_ret_o = 1'b1;
         end else begin
             csr_pc_o = 32'b0;
+            pc_mux_exc_o = 1'b0;
+            pc_mux_ret_o = 1'b0;
         end
     end
 endmodule

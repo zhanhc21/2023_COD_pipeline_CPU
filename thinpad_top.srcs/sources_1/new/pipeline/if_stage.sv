@@ -13,7 +13,8 @@ module IF_Stage #(
     input wire [31:0] pc_from_exe_i,
     input wire        pc_mux_i,  // 0: pc, 1: exe_pc
     input wire [31:0] pc_from_csr_i,
-    input wire        pc_recover_i, // 1: enable
+    input wire        pc_mux_ret_i, // 1: enable
+    input wire        pc_mux_exc_i,
     
     // wishbone signals
     output reg wb_cyc_o,
@@ -27,9 +28,11 @@ module IF_Stage #(
 
     // signals to ID stage
     output reg [31:0] id_pc_o,
-    output reg [31:0] id_instr_o
+    output reg [31:0] id_instr_o,
+    // pc to csr as time interrupt occur
+    output reg [31:0] int_pc_o
 );
-    // TODO: stall signal and flush signal
+    // stall signal and flush signal
     reg [31:0] pc_reg;
     reg [31:0] pc_now_reg;
     reg [31:0] inst_reg;
@@ -73,21 +76,21 @@ module IF_Stage #(
             wb_stb_o <= 1'b1;
             wb_we_o <= 1'b0;
             wb_sel_o <= 4'b1111;
-            if (pc_mux_i == 1) begin
-                wb_addr_o <= pc_from_exe_i;
-                pc_reg <= pc_from_exe_i;
-                pc_now_reg <= 32'h0;
-                inst_reg <= 32'h0;
-            end else if (pc_recover_i) begin
+            if (pc_mux_exc_i || pc_mux_ret_i) begin
                 wb_addr_o <= pc_from_csr_i;
                 pc_reg <= pc_from_csr_i;
+                pc_now_reg <= 32'h0;
+                inst_reg <= 32'h0;
+            end else if (pc_mux_i == 1) begin
+                wb_addr_o <= pc_from_exe_i;
+                pc_reg <= pc_from_exe_i;
                 pc_now_reg <= 32'h0;
                 inst_reg <= 32'h0;
             end else begin
                 wb_addr_o <= pc_reg;
             end
 
-            if (wb_ack_i && (!pc_mux_i || wb_addr_o == pc_from_exe_i) && (!pc_recover_i || wb_addr_o == pc_from_csr_i)) begin
+            if (wb_ack_i && (!pc_mux_i || wb_addr_o == pc_from_exe_i) && (!pc_mux_ret_i || wb_addr_o == pc_from_csr_i)) begin
                 wb_cyc_o <= 1'b0;
                 wb_stb_o <= 1'b0;
                 wb_we_o <= 1'b0;
@@ -114,4 +117,8 @@ module IF_Stage #(
         end
     end
 
+    always_comb begin
+        if (pc_mux_exc_i)
+            int_pc_o = pc_reg;
+    end
 endmodule

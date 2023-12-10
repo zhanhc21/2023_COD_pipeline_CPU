@@ -1,3 +1,5 @@
+`include "../include/csr.vh"
+
 module EXE_Stage (
     input wire clk_i,
     input wire rst_i,
@@ -15,10 +17,14 @@ module EXE_Stage (
     input wire [ 3:0] exe_alu_op_i,
     input wire        exe_alu_a_mux_i,    // 0: rs1, 1: pc
     input wire        exe_alu_b_mux_i,    // 0: imm, 1: rs2
-    input wire [4:0]  exe_rf_waddr_i,
+    input wire [ 4:0] exe_rf_waddr_i,
     input wire        exe_rf_wen_i,
     input wire [11:0] exe_csr_waddr_i,
     input wire        exe_csr_wen_i,
+
+    input wire        exe_exc_en_i,
+    input wire [30:0] exe_exc_code_i,
+    input wire [31:0] exe_exc_pc_i,
 
     // stall signal and flush signal
     input wire stall_i,
@@ -43,6 +49,9 @@ module EXE_Stage (
     output reg         mem_mem_wen_o,     // if write DM (0: read DM, 1: write DM)
     output reg  [4:0]  mem_rf_waddr_o,    // rf addr
     output reg         mem_rf_wen_o,      // if write back (rf)
+    output reg         mem_exc_en_o,
+    output reg  [30:0] mem_exc_code_o,
+    output reg  [31:0] mem_exc_pc_o,
 
     // signals to ALU
     input  wire [31:0] alu_result_i,
@@ -57,38 +66,6 @@ module EXE_Stage (
 ); 
 
     logic [6:0]  opcode;
-    typedef enum logic [4:0] {
-        ADD   = 0,
-        ADDI  = 1,
-        AND   = 2,
-        ANDI  = 3,
-        AUIPC = 4,
-        BEQ   = 5,
-        BNE   = 6,
-        JAL   = 7,
-        JALR  = 8,
-        LB    = 9,
-        LUI   = 10,
-        LW    = 11,
-        OR    = 12,
-        ORI   = 13,
-        SB    = 14,
-        SLLI  = 15,
-        SRLI  = 16,
-        SW    = 17,
-        XOR   = 18,
-        ANDN  = 19,
-        SBSET = 20,
-        MINU  = 21,
-        NOP   = 22,
-        CSRRC = 23,
-        CSRRS = 24,
-        CSRRW = 25,
-        SLTU  = 26,
-        EBREAK = 27,
-        ECALL = 28,
-        MRET  = 29
-    } op_type;
     op_type instr_type;
 
     // inst decode
@@ -234,6 +211,9 @@ module EXE_Stage (
             mem_mem_wen_o <= 1'b0;
             mem_rf_wen_o <= 1'b0;
             mem_rf_waddr_o <= 5'b0;
+            mem_exc_en_o    <= 1'b0;
+            mem_exc_pc_o    <= 32'b0;
+            mem_exc_code_o  <= 31'b0;
         end else begin
             if (stall_i == 1'b0 && 
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
@@ -353,6 +333,9 @@ module EXE_Stage (
                 mem_rf_waddr_o <= mem_rf_waddr_o;
                 mem_rf_wen_o <= mem_rf_wen_o;
             end
+            mem_exc_en_o    <= exe_exc_en_i;
+            mem_exc_pc_o    <= exe_exc_pc_i;
+            mem_exc_code_o  <= exe_exc_code_i;
         end
     end
 endmodule
