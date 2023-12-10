@@ -38,8 +38,8 @@ module WB_Stage (
             rf_wdata_controller_o <= wb_rf_wdata_i;
             rf_waddr_controller_o <= wb_rf_waddr_i;
             rf_wen_controller_o <= wb_rf_wen_i;
-        end else 
+        end else begin
             rf_wen_controller_o <= 1'b0;
+        end
     end
-
 endmodule

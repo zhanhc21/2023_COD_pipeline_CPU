@@ -22,7 +22,9 @@ module pipeline #(
     output reg [DATA_WIDTH-1:0] wbm_data_o_dm,
     input reg [DATA_WIDTH-1:0] wbm_data_i_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
-    output reg wbm_we_dm
+    output reg wbm_we_dm,
+    // ICache
+    output reg fence_i_o
 );
   
     // regfile signals
@@ -169,6 +171,7 @@ module pipeline #(
         // stall signal and flush signal
         .stall_i(if_stall),
         .flush_i(if_flush),
+        .busy_o(if_busy),
 
         // pc mux signals
         .pc_from_exe_i(exe_if_pc),
@@ -191,7 +194,10 @@ module pipeline #(
         
         // signals to ID stage
         .id_pc_o(if_id_pc),
-        .id_instr_o(if_id_instr)
+        .id_instr_o(if_id_instr),
+
+        // signal to ICache
+        .fence_i_o(fence_i_o)
     );
 
     /* ========== ID stage ========== */
@@ -411,6 +417,7 @@ module pipeline #(
         // memory busy signals (IF & MEM)
         .mem_finish_i(mem_finish),
         .mem_busy_i(mem_busy),
+        .if_busy_i(if_busy),
 
         // stall and flush signals
         .if_stall_o(if_stall),
