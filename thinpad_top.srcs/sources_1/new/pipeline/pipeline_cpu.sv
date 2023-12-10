@@ -138,8 +138,10 @@ module pipeline #(
     logic [31:0] exe_branch_src_pc_i;
     logic [31:0] exe_branch_tgt_pc_i;
     logic        exe_branch_en_i;
+    logic        exe_branch_mispred_i;
     logic [31:0] if_now_pc_i;
     logic [31:0] if_next_pc_o;
+    logic        exe_branch_taken_o;
 
     btb u_btb(
         .clk_i(clk_i),
@@ -148,9 +150,11 @@ module pipeline #(
         .exe_branch_src_pc_i(exe_branch_src_pc_i),
         .exe_branch_tgt_pc_i(exe_branch_tgt_pc_i),
         .exe_branch_en_i(exe_branch_en_i),
+        .exe_branch_mispred_i(exe_branch_mispred_i),
 
         .if_now_pc_i(if_now_pc_i),
-        .if_next_pc_o(if_next_pc_o)
+        .if_next_pc_o(if_next_pc_o),
+        .exe_branch_taken_o(exe_branch_taken_o)
     );
 
 
@@ -295,7 +299,10 @@ module pipeline #(
         // signals to BTB
         .exe_branch_src_pc_o(exe_branch_src_pc_i),
         .exe_branch_tgt_pc_o(exe_branch_tgt_pc_i),
-        .exe_branch_en_o(exe_branch_en_i)
+        .exe_branch_en_o(exe_branch_en_i),
+        .exe_branch_mispred_o(exe_branch_mispred_i),
+
+        .exe_branch_taken_i(exe_branch_taken_o)
     );
 
     /* ========== MEM stage ========== */

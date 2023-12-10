@@ -9,6 +9,7 @@ module btb #(
     input wire [31:0] exe_branch_src_pc_i,
     input wire [31:0] exe_branch_tgt_pc_i,
     input wire        exe_branch_en_i, // 1: take a branch
+    input wire        exe_branch_mispred_i,  // 1: mispredict
     
     // signals from IF stage
     input wire [31:0] if_now_pc_i,

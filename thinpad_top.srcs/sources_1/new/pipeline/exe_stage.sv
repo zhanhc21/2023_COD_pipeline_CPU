@@ -59,6 +59,7 @@ module EXE_Stage (
     output reg [31:0] exe_branch_src_pc_o,
     output reg [31:0] exe_branch_tgt_pc_o,
     output reg        exe_branch_en_o,  // 1: take a branch
+    output reg        exe_branch_mispred_o,  // 1: mispredict
 
     input wire        exe_branch_taken_i
 ); 
