@@ -71,7 +71,7 @@ module pipeline_controller(
             state <= STATE_IDLE;
         end else begin
             if (state == STATE_IDLE) begin
-                if (exe_if_pc_mux_i == 1'b1) begin
+                if (exe_if_pc_mux_i == 1'b1 && if_busy_i == 1'b0) begin
                     state <= STATE_FLUSH;
                 end else
                     state <= STATE_IDLE;
