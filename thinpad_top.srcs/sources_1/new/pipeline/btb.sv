@@ -68,6 +68,38 @@ module btb #(
                 src_pc_reg[exe_pc_hash_reg] <= exe_branch_src_pc_i;
                 tgt_pc_reg[exe_pc_hash_reg] <= exe_branch_tgt_pc_i;
                 valid_reg[exe_pc_hash_reg] <= 1'b1;
+
+                if (exe_branch_mispred_i) begin
+                    case(exe_find_pred_reg)
+                        2'b00: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b01;
+                        end
+                        2'b01: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b11;
+                        end
+                        2'b11: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b10;
+                        end
+                        2'b10: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b00;
+                        end
+                    endcase
+                end else begin
+                    case(exe_find_pred_reg)
+                        2'b00: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b00;
+                        end
+                        2'b01: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b00;
+                        end
+                        2'b11: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b11;
+                        end
+                        2'b10: begin
+                            predict_reg[exe_pc_hash_reg] <= 2'b11;
+                        end
+                    endcase
+                end
             end
         end
     end

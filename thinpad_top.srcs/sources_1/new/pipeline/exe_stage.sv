@@ -268,6 +268,7 @@ module EXE_Stage (
             mem_rf_waddr_o <= 5'b0;
 
             exe_branch_en_o <= 1'b0;
+            exe_branch_mispred_o <= 1'b0;
         end else begin
             if (stall_i == 1'b0 && 
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
@@ -298,9 +299,13 @@ module EXE_Stage (
                             if (exe_branch_taken_i) begin
                                 if_pc_mux_o <= 1'b0;
                                 if_pc_o <= alu_result_i;
+
+                                exe_branch_mispred_o <= 1'b0;
                             end else begin
                                 if_pc_mux_o <= 1'b1;
                                 if_pc_o <= alu_result_i;
+
+                                exe_branch_mispred_o <= 1'b1;
                             end
 
                         end 
@@ -314,9 +319,13 @@ module EXE_Stage (
                             if (exe_branch_taken_i) begin
                                 if_pc_mux_o <= 1'b1;
                                 if_pc_o <= exe_pc_i + 32'd4;
+
+                                exe_branch_mispred_o <= 1'b1;
                             end else begin
                                 if_pc_mux_o <= 1'b0;
                                 if_pc_o <= exe_pc_i + 32'd4;
+
+                                exe_branch_mispred_o <= 1'b0;
                             end
                             
                         end
@@ -332,9 +341,13 @@ module EXE_Stage (
                             if (exe_branch_taken_i) begin
                                 if_pc_mux_o <= 1'b0;
                                 if_pc_o <= alu_result_i;
+
+                                exe_branch_mispred_o <= 1'b0;
                             end else begin
                                 if_pc_mux_o <= 1'b1;
                                 if_pc_o <= alu_result_i;
+
+                                exe_branch_mispred_o <= 1'b1;
                             end
 
                         end 
@@ -347,9 +360,13 @@ module EXE_Stage (
                             if (exe_branch_taken_i) begin
                                 if_pc_mux_o <= 1'b1;
                                 if_pc_o <= exe_pc_i + 32'd4;
+
+                                exe_branch_mispred_o <= 1'b1;
                             end else begin
                                 if_pc_mux_o <= 1'b0;
                                 if_pc_o <= exe_pc_i + 32'd4;
+
+                                exe_branch_mispred_o <= 1'b0;
                             end
 
                         end
@@ -363,6 +380,7 @@ module EXE_Stage (
                         mem_mem_wdata_o <= exe_rf_rdata_b_i[7:0] << ((alu_result_i % 4) * 8); 
 
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     SW: begin
                         if_pc_mux_o <= 1'b0;
@@ -371,6 +389,7 @@ module EXE_Stage (
                         mem_mem_wdata_o <= exe_rf_rdata_b_i << ((alu_result_i % 4) * 8);
 
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     LUI: begin
                         if_pc_mux_o <= 1'b0;
@@ -378,6 +397,7 @@ module EXE_Stage (
                         mem_alu_result_o <= exe_imm_i;
 
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     JAL: begin
                         
@@ -385,10 +405,14 @@ module EXE_Stage (
                             if_pc_mux_o <= 1'b0;
                             // pc += offset
                             if_pc_o <= alu_result_i;
+
+                            exe_branch_mispred_o <= 1'b0;
                         end else begin
                             if_pc_mux_o <= 1'b1;
                             // pc += offset
                             if_pc_o <= alu_result_i;
+
+                            exe_branch_mispred_o <= 1'b1;
                         end
                         
                         mem_alu_result_o <= exe_pc_i + 32'd4;
@@ -401,10 +425,14 @@ module EXE_Stage (
                             if_pc_mux_o <= 1'b0;
                             // pc = rs1 + offset
                             if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
+
+                            exe_branch_mispred_o <= 1'b0;
                         end else begin
                             if_pc_mux_o <= 1'b1;
                             // pc = rs1 + offset
                             if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
+
+                            exe_branch_mispred_o <= 1'b1;
                         end
 
                         mem_alu_result_o <= exe_pc_i + 32'd4;
@@ -423,6 +451,7 @@ module EXE_Stage (
                         mem_rf_wen_o <= 1'b0;
 
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     CSRRC: begin
                         if_pc_mux_o <= 1'b0;
@@ -430,6 +459,7 @@ module EXE_Stage (
                         mem_alu_result_o <= exe_imm_i;
                         
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     CSRRS: begin
                         if_pc_mux_o <= 1'b0;
@@ -437,6 +467,7 @@ module EXE_Stage (
                         mem_alu_result_o <= exe_imm_i;
                         
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     CSRRW: begin
                         if_pc_mux_o <= 1'b0;
@@ -444,6 +475,7 @@ module EXE_Stage (
                         mem_alu_result_o <= exe_imm_i;
 
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu,sltu,ebreak,ecall,mret
                     default: begin
@@ -451,6 +483,7 @@ module EXE_Stage (
                         if_pc_o <= exe_pc_i;
 
                         exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                 endcase
             end else if (flush_i) begin
@@ -467,6 +500,7 @@ module EXE_Stage (
                 mem_rf_wen_o <= 1'b0;
 
                 exe_branch_en_o <= 1'b0;
+                exe_branch_mispred_o <= 1'b0;
             end else begin
                 if_pc_o <= if_pc_o;
                 if_pc_mux_o <= if_pc_mux_o;
@@ -481,6 +515,7 @@ module EXE_Stage (
                 mem_rf_wen_o <= mem_rf_wen_o;
 
                 exe_branch_en_o <= 1'b0;
+                exe_branch_mispred_o <= 1'b0;
             end
         end
     end
