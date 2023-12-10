@@ -105,7 +105,7 @@ module pipeline_controller(
             exe_stall_o = 1'b1;
         end else if (exe_if_pc_mux_i == 1'b1 && if_busy_i == 1'b0 && state != STATE_DONE) begin  // branch and jump, flush ID & EXE
             if_flush_o = 1'b1;
-//            id_flush_o = 1'b1;
+            id_flush_o = 1'b1;
 //            exe_flush_o = 1'b1;
         end
         // else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
