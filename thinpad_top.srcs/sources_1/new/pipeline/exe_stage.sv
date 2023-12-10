@@ -242,13 +242,13 @@ module EXE_Stage (
         end else begin
             if (stall_i == 1'b0 && 
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
-                if (exe_pc_i == 32'h80000430) begin
+                if (exe_pc_i == 32'h80000070) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h80000124) begin
+                if (exe_pc_i == 32'h80000058) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h800003ac) begin
+                if (exe_pc_i == 32'h8000002c) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 mem_pc_o         <= exe_pc_i;
@@ -260,25 +260,37 @@ module EXE_Stage (
                 mem_rf_wen_o     <= exe_rf_wen_i;
 
                 case (instr_type)
-                    BEQ: begin 
-                        if (exe_rf_rdata_a_i == exe_rf_rdata_b_i) begin
+                    BEQ: begin
+                        if ((exe_forward_alu_a_mux_i == 1'b1 && exe_forward_alu_b_mux_i == 1'b0 && exe_forward_alu_a_i == exe_rf_rdata_b_i)
+                            || (exe_forward_alu_a_mux_i == 1'b0 && exe_forward_alu_b_mux_i == 1'b1 && exe_forward_alu_b_i == exe_rf_rdata_a_i)
+                            || (exe_forward_alu_a_mux_i == 1'b1 && exe_forward_alu_b_mux_i == 1'b1 && exe_forward_alu_a_i == exe_forward_alu_b_i)
+                            || (exe_forward_alu_a_mux_i == 1'b0 && exe_forward_alu_b_mux_i == 1'b0 && exe_rf_rdata_a_i == exe_rf_rdata_b_i)) begin
                             if_pc_mux_o <= 1'b1;
                             if_pc_o <= alu_result_i;
-                            //if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;
-                        end else begin
+                        end 
+//                        else if (exe_rf_rdata_a_i == exe_rf_rdata_b_i) begin
+//                            if_pc_mux_o <= 1'b1;
+//                            if_pc_o <= alu_result_i;
+//                            //if_pc_o <= exe_pc_i + (exe_imm_i << 1) | SignExt;
+//                        end 
+                        else begin
                             if_pc_mux_o <= 1'b0;
                             if_pc_o <= exe_pc_i;
                         end
                     end
                     BNE: begin
-                        if (exe_forward_alu_a_mux_i == 1'b1 && exe_forward_alu_a_i == exe_rf_rdata_b_i) begin
-                            if_pc_mux_o <= 1'b0;
-                            if_pc_o <= exe_pc_i;
-                        end 
-                        else if (exe_rf_rdata_a_i != exe_rf_rdata_b_i && alu_result_i != 0) begin
+                        if ((exe_forward_alu_a_mux_i == 1'b1 && exe_forward_alu_b_mux_i == 1'b0 && exe_forward_alu_a_i != exe_rf_rdata_b_i)
+                            || (exe_forward_alu_a_mux_i == 1'b0 && exe_forward_alu_b_mux_i == 1'b1 && exe_forward_alu_b_i != exe_rf_rdata_a_i)
+                            || (exe_forward_alu_a_mux_i == 1'b1 && exe_forward_alu_b_mux_i == 1'b1 && exe_forward_alu_a_i != exe_forward_alu_b_i)
+                            || (exe_forward_alu_a_mux_i == 1'b0 && exe_forward_alu_b_mux_i == 1'b0 && exe_rf_rdata_a_i != exe_rf_rdata_b_i) && alu_result_i != 0) begin
                             if_pc_mux_o <= 1'b1;
-                            if_pc_o <= alu_result_i; 
-                        end else begin
+                            if_pc_o <= alu_result_i;
+                        end 
+//                        else if (exe_rf_rdata_a_i != exe_rf_rdata_b_i && alu_result_i != 0) begin
+//                            if_pc_mux_o <= 1'b1;
+//                            if_pc_o <= alu_result_i; 
+//                        end 
+                        else begin
                             if_pc_mux_o <= 1'b0;
                             if_pc_o <= exe_pc_i;        
                         end
