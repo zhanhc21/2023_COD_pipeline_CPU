@@ -43,10 +43,10 @@ module ICache #(
 
     logic [DATA_WIDTH-1:0] hit_data;
     always_comb begin
-        if (wb_ack_i) begin
-            hit_data = wb_data_i;
-        end else if (cache_hit) begin
+        if (cache_hit) begin
             hit_data = cache_regs[cache_addr_i[7:2]].data;
+        end else if (wb_ack_i) begin
+            hit_data = wb_data_i;
         end else begin
             hit_data = 32'h0;
         end

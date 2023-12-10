@@ -236,13 +236,13 @@ module EXE_Stage (
         end else begin
             if (stall_i == 1'b0 && (exe_pc_i == if_pc_o || exe_pc_i == 32'h0) &&
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
-                if (exe_pc_i == 32'h80000428) begin
+                if (exe_pc_i == 32'h800000fc) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h80000430) begin
+                if (exe_pc_i == 32'h800001d4) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h800004f8) begin
+                if (exe_pc_i == 32'h80000108) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 mem_pc_o         <= exe_pc_i;
@@ -323,7 +323,7 @@ module EXE_Stage (
 //                            if_pc_mux_o <= 1'b1;
 //                        else
 //                            if_pc_mux_o <= 1'b0;
-                        if_pc_mux_o <= 0;
+                        if_pc_mux_o <= 1'b0;
                         if_pc_o <= if_pc_o;
                         mem_mem_en_o <= 1'b0;
                         mem_mem_wen_o <= 1'b0;
