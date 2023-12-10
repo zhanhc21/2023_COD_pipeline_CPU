@@ -136,6 +136,33 @@ module pipeline #(
     logic [31:0] rf_wdata_controller;
     logic rf_wen_controller;
 
+    // BTB signal
+    logic [31:0] exe_branch_src_pc_i;
+    logic [31:0] exe_branch_tgt_pc_i;
+    logic        exe_branch_en_i;
+    logic        exe_branch_mispred_i;
+    logic [31:0] if_now_pc_i;
+    logic [31:0] if_next_pc_o;
+    logic        exe_branch_taken_o;
+    logic        if_hit_o;
+
+    btb u_btb(
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+
+        .exe_branch_src_pc_i(exe_branch_src_pc_i),
+        .exe_branch_tgt_pc_i(exe_branch_tgt_pc_i),
+        .exe_branch_en_i(exe_branch_en_i),
+        .exe_branch_mispred_i(exe_branch_mispred_i),
+
+        .if_now_pc_i(if_now_pc_i),
+        .if_next_pc_o(if_next_pc_o),
+        .if_hit_o(if_hit_o),
+
+        .exe_branch_taken_o(exe_branch_taken_o)
+    );
+
+
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
         .clk_i(clk_i),
@@ -159,6 +186,11 @@ module pipeline #(
         .wb_data_i(wbm_data_i_im),
         .wb_sel_o(wbm_sel_im),
         .wb_we_o(wbm_we_im),
+
+        // BTB signals
+        .if_now_pc_o(if_now_pc_i),
+        .if_next_pc_i(if_next_pc_o),
+        .if_hit_i(if_hit_o),
         
         // signals to ID stage
         .id_pc_o(if_id_pc),
@@ -272,7 +304,15 @@ module pipeline #(
         // signals to 
         .csr_wen_o(csr_wen_o),
         .csr_wdata_o(csr_wdata_o),
-        .csr_waddr_o(csr_waddr_o)
+        .csr_waddr_o(csr_waddr_o),
+
+        // signals to BTB
+        .exe_branch_src_pc_o(exe_branch_src_pc_i),
+        .exe_branch_tgt_pc_o(exe_branch_tgt_pc_i),
+        .exe_branch_en_o(exe_branch_en_i),
+        .exe_branch_mispred_o(exe_branch_mispred_i),
+
+        .exe_branch_taken_i(exe_branch_taken_o)
     );
 
     /* ========== MEM stage ========== */
