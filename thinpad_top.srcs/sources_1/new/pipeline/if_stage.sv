@@ -8,6 +8,7 @@ module IF_Stage #(
     // stall signal and flush signal
     input wire stall_i,
     input wire flush_i,
+    output wire busy_o,
 
     // pc mux signals
     input wire [31:0] pc_from_exe_i,
@@ -31,11 +32,12 @@ module IF_Stage #(
     reg [31:0] pc_reg;
     reg [31:0] pc_now_reg;
     reg [31:0] inst_reg;
-    typedef enum logic [2:0] {
+    typedef enum logic {
         STATE_IDLE = 0,
         STATE_READ = 1
     } state_t;
     state_t state;
+    assign busy_o = state;
     always_ff @ (posedge clk_i) begin
         if (rst_i) begin
             wb_cyc_o <= 1'b0;

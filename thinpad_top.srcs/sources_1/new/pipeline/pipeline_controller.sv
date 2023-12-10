@@ -31,6 +31,7 @@ module pipeline_controller(
     input wire        rf_wen_controller_i,
 
     // wishbone busy signals
+    input wire if_busy_i,
     input wire mem_busy_i,
     input wire mem_finish_i,
 
@@ -57,6 +58,34 @@ module pipeline_controller(
     input wire ecall_i,
     input wire mret_i
 );
+
+    typedef enum logic [2:0] {
+        STATE_IDLE = 0,
+        STATE_FLUSH = 1,
+        STATE_DONE = 2
+    } state_t;
+    state_t state;
+    
+    always_ff @ (posedge clk_i) begin
+        if (rst_i) begin
+            state <= STATE_IDLE;
+        end else begin
+            if (state == STATE_IDLE) begin
+                if (exe_if_pc_mux_i == 1'b1) begin
+                    state <= STATE_FLUSH;
+                end else
+                    state <= STATE_IDLE;
+            end else if (state == STATE_FLUSH) begin
+                    state <= STATE_DONE;
+            end else begin
+                if (exe_if_pc_mux_i == 1'b0) 
+                    state <= STATE_IDLE;
+                else
+                    state <= STATE_DONE;
+            end
+        end
+    end
+    
     // structure(memory) hazard
     always_comb begin
         if_stall_o = 1'b0;
@@ -74,11 +103,11 @@ module pipeline_controller(
             if_stall_o = 1'b1;
             id_stall_o = 1'b1;
             exe_stall_o = 1'b1;
-        end else if (exe_if_pc_mux_i == 1'b1) begin  // branch and jump, flush ID & EXE
+        end else if (exe_if_pc_mux_i == 1'b1 && if_busy_i == 1'b0 && state != STATE_DONE) begin  // branch and jump, flush ID & EXE
             if_flush_o = 1'b1;
 //            id_flush_o = 1'b1;
 //            exe_flush_o = 1'b1;
-        end 
+        end
         // else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
         //     (exe_rf_waddr_i == id_rf_raddr_a_i || exe_rf_waddr_i == id_rf_raddr_b_i)) begin
         //     if_stall_o = 1'b1;
