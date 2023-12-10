@@ -26,6 +26,7 @@ module IF_Stage #(
     // BTB signals
     output reg [31:0] if_now_pc_o,
     input wire [31:0] if_next_pc_i,
+    input wire        if_hit_i,
 
     // signals to ID stage
     output reg [31:0] id_pc_o,

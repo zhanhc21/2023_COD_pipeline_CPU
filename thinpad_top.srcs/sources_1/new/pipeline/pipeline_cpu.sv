@@ -142,6 +142,7 @@ module pipeline #(
     logic [31:0] if_now_pc_i;
     logic [31:0] if_next_pc_o;
     logic        exe_branch_taken_o;
+    logic        if_hit_o;
 
     btb u_btb(
         .clk_i(clk_i),
@@ -154,6 +155,8 @@ module pipeline #(
 
         .if_now_pc_i(if_now_pc_i),
         .if_next_pc_o(if_next_pc_o),
+        .if_hit_o(if_hit_o),
+
         .exe_branch_taken_o(exe_branch_taken_o)
     );
 
@@ -184,6 +187,7 @@ module pipeline #(
         // BTB signals
         .if_now_pc_o(if_now_pc_i),
         .if_next_pc_i(if_next_pc_o),
+        .if_hit_i(if_hit_o),
         
         // signals to ID stage
         .id_pc_o(if_id_pc),

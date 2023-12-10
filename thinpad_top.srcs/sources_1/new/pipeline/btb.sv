@@ -1,6 +1,6 @@
 module btb #(
-    parameter NUM_ENTRIES = 32,
-    parameter TABLE_LENGTH = 5
+    parameter NUM_ENTRIES = 64,
+    parameter TABLE_LENGTH = 6
 ) (
     input wire clk_i,
     input wire rst_i,
@@ -15,12 +15,13 @@ module btb #(
     input wire [31:0] if_now_pc_i,
     
     output reg [31:0] if_next_pc_o,
+    output reg        if_hit_o,
     output reg        exe_branch_taken_o
 );
 
     reg [31:0]  src_pc_reg [NUM_ENTRIES-1:0];
     reg [31:0]  tgt_pc_reg [NUM_ENTRIES-1:0];
-    reg        predict_reg [NUM_ENTRIES-1:0];
+    reg [ 1:0] predict_reg [NUM_ENTRIES-1:0];
     reg          valid_reg [NUM_ENTRIES-1:0];
 
     reg [TABLE_LENGTH-1:0] exe_pc_hash_reg;
@@ -28,12 +29,12 @@ module btb #(
 
     reg [31:0] exe_find_src_reg;
     reg [31:0] exe_find_tgt_reg;
-    reg        exe_find_pred_reg;
+    reg [ 1:0] exe_find_pred_reg;
     reg        exe_find_valid_reg;
 
     reg [31:0] if_find_src_reg;
     reg [31:0] if_find_tgt_reg;
-    reg        if_find_pred_reg;
+    reg [ 1:0] if_find_pred_reg;
     reg        if_find_valid_reg;
 
     reg [31:0] if_next_pc_reg;
@@ -61,7 +62,7 @@ module btb #(
                 src_pc_reg[i] <= 32'd0;
                 tgt_pc_reg[i] <= 32'd0;
                 valid_reg[i] <= 1'b0;
-                predict_reg[i] <= 1'b0;
+                predict_reg[i] <= 2'b0;
             end
         end else begin
             if (exe_branch_en_i) begin
@@ -106,7 +107,7 @@ module btb #(
 
     always_comb begin
         if (exe_find_valid_reg == 1'b1 && exe_find_src_reg == exe_branch_src_pc_i && exe_find_tgt_reg == exe_branch_tgt_pc_i) begin
-            if (exe_find_pred_reg == 1'b0) begin
+            if (exe_find_pred_reg[1] == 1'b0) begin
                 exe_branch_taken_o = 1'b0;
             end else begin
                 exe_branch_taken_o = 1'b1;
@@ -118,13 +119,16 @@ module btb #(
 
     always_comb begin
         if (if_find_valid_reg == 1'b1 && if_find_src_reg == if_now_pc_i) begin
-            if (if_find_pred_reg == 1'b0) begin  // predict branch not taken
+            if (if_find_pred_reg[1] == 1'b0) begin  // predict branch not taken
                 if_next_pc_reg = if_now_pc_i + 32'd4;
+                if_hit_o = 1'b0;
             end else begin  // predict branch taken
                 if_next_pc_reg = if_find_tgt_reg;
+                if_hit_o = 1'b1;
             end
         end else begin  // not hit
             if_next_pc_reg = if_now_pc_i + 32'd4;
+            if_hit_o = 1'b0;
         end
     end
 
