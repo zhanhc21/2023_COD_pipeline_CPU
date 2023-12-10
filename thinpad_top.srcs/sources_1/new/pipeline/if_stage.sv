@@ -128,6 +128,6 @@ module IF_Stage #(
         end
     end
     
-    assign if_now_pc_o = pc_now_reg;
+    assign if_now_pc_o = pc_reg;
 
 endmodule
