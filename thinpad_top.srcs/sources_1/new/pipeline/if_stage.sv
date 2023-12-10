@@ -76,12 +76,13 @@ module IF_Stage #(
             wb_stb_o <= 1'b1;
             wb_we_o <= 1'b0;
             wb_sel_o <= 4'b1111;
-            if (pc_mux_exc_i || pc_mux_ret_i) begin
-                wb_addr_o <= pc_from_csr_i;
-                pc_reg <= pc_from_csr_i;
-                pc_now_reg <= 32'h0;
-                inst_reg <= 32'h0;
-            end else if (pc_mux_i == 1) begin
+            // if (pc_mux_exc_i || pc_mux_ret_i) begin
+            //     wb_addr_o <= pc_from_csr_i;
+            //     pc_reg <= pc_from_csr_i;
+            //     pc_now_reg <= 32'h0;
+            //     inst_reg <= 32'h0;
+            // end else 
+            if (pc_mux_i == 1) begin
                 wb_addr_o <= pc_from_exe_i;
                 pc_reg <= pc_from_exe_i;
                 pc_now_reg <= 32'h0;

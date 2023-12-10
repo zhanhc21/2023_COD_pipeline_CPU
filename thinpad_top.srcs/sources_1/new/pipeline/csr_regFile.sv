@@ -21,8 +21,6 @@ module csr_regFile (
     input wire [31:0] exc_pc_i,      // pc of exc instr from mem stage
     
     // interupt signals
-    // input wire external_i,
-    // input wire softwire_i,
     input wire        timer_i,
     // pc of time insterrupt instr from if stage
     input wire [31:0] int_pc_i,
