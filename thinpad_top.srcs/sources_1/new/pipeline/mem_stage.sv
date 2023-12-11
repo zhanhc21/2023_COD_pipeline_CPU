@@ -203,10 +203,10 @@ module MEM_Stage (
                         if (instr_type == LW)
                             wb_rf_wdata_o <= wb_data_i;
                         else case (mem_alu_result_i[1:0])
-                            2'b00: wb_rf_wdata_o <= {24'b0, wb_data_i[7: 0]};
-                            2'b01: wb_rf_wdata_o <= {24'b0, wb_data_i[15: 8]};
-                            2'b10: wb_rf_wdata_o <= {24'b0, wb_data_i[23:16]};
-                            2'b11: wb_rf_wdata_o <= {24'b0, wb_data_i[31:24]};
+                            2'b00: wb_rf_wdata_o <= {{25{wb_data_i[7]}}, wb_data_i[6: 0]};
+                            2'b01: wb_rf_wdata_o <= {{25{wb_data_i[15]}}, wb_data_i[14: 8]};
+                            2'b10: wb_rf_wdata_o <= {{25{wb_data_i[23]}}, wb_data_i[22:16]};
+                            2'b11: wb_rf_wdata_o <= {{25{wb_data_i[31]}}, wb_data_i[30:24]};
                         endcase
                         wb_pc_o <= mem_pc_i;
                         wb_instr_o <= mem_instr_i;
