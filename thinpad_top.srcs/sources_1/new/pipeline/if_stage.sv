@@ -36,7 +36,7 @@ module IF_Stage #(
     output reg [31:0] id_pc_o,
     output reg [31:0] id_instr_o,
     // pc to csr as time interrupt occur
-    output reg [31:0] int_pc_o
+    output reg [31:0] int_pc_o,
 
     // signal to ICache
     output reg fence_i_o

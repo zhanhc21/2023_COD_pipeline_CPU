@@ -25,7 +25,7 @@ module pipeline #(
     output reg wbm_we_dm,
 
     // csr time signal
-    input wire timeout_signal
+    input wire timeout_signal,
     // ICache
     output reg fence_i_o
 );
@@ -73,8 +73,8 @@ module pipeline #(
 
     logic        exc_occur_signal;
     logic        ret_occur_signal;
-    logic [31:0] csr_if_pc;  // mtvec异常处理程序地址 / mepc异常处地址
-    logic [31:0] if_csr_pc;  // 时钟中断处地址
+    logic [31:0] csr_if_pc;  // mtvec异常处理程序地址 / mepc异常处地�?
+    logic [31:0] if_csr_pc;  // 时钟中断处地�?
 
     csr_regFile u_csr_regFile (
         .clk_i(clk_i),
@@ -244,7 +244,7 @@ module pipeline #(
         .id_instr_o(if_id_instr),
 
         // pc to csr as time interrpt occur
-        .int_pc_o(if_csr_pc)
+        .int_pc_o(if_csr_pc),
         // signal to ICache
         .fence_i_o(fence_i_o)
     );
