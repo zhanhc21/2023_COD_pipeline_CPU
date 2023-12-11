@@ -2,3 +2,4 @@
 !*.xci
 !*.xml
 !.gitignore
+!bram_init.coe
