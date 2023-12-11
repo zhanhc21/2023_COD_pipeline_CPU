@@ -243,10 +243,6 @@ module EXE_Stage (
                 exe_branch_src_pc_o = exe_pc_i;
                 exe_branch_tgt_pc_o = alu_result_i;
             end
-            JALR: begin
-                exe_branch_src_pc_o = exe_pc_i;
-                exe_branch_tgt_pc_o = (exe_imm_i + exe_rf_rdata_a_i) & ~1;
-            end
             default: begin
                 exe_branch_src_pc_o = 32'b0;
                 exe_branch_tgt_pc_o = 32'b0;
@@ -421,23 +417,17 @@ module EXE_Stage (
                     end
                     JALR: begin
 
-                        if (exe_branch_taken_i) begin
-                            if_pc_mux_o <= 1'b0;
-                            // pc = rs1 + offset
+                        if_pc_mux_o <= 1'b1;
+                        // pc = rs1 + offset
+                        if (exe_forward_alu_a_mux_i)
+                            if_pc_o <= (exe_imm_i + exe_forward_alu_a_i) & ~1;
+                        else
                             if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
-
-                            exe_branch_mispred_o <= 1'b0;
-                        end else begin
-                            if_pc_mux_o <= 1'b1;
-                            // pc = rs1 + offset
-                            if_pc_o <= (exe_imm_i + exe_rf_rdata_a_i) & ~1;
-
-                            exe_branch_mispred_o <= 1'b1;
-                        end
 
                         mem_alu_result_o <= exe_pc_i + 32'd4;
 
-                        exe_branch_en_o <= 1'b1;
+                        exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
                     end
                     NOP: begin
 //                        if (if_pc_mux_o == 1'b1) 
