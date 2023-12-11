@@ -12,17 +12,20 @@ module reg_file (
     output wire [31:0] rdata_b
 );  
     reg [31:0] regs [0:31];
+    integer i;
 
     always_ff @ (posedge clk or posedge reset) begin
         if (reset) begin
-            int i;
-            for (i=0; i<32; i++)
-                regs[i] <= 16'd0;
+            for (i = 0; i < 32; i = i + 1) begin
+                regs[i] <= 32'd0;
+            end        
         end else if (we && waddr != 16'd0) begin
             regs[waddr] <= wdata;
+            regs[0] <= 32'h0;
+        end else begin
+            regs[0] <= 32'h0;
         end
     end
     assign rdata_a = regs[raddr_a];
     assign rdata_b = regs[raddr_b];
-    assign regs[0] = 32'h0;
 endmodule
