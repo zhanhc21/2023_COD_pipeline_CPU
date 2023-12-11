@@ -111,6 +111,7 @@ module ID_Stage (
 
         csr_rdata_reg = csr_rdata_i;
 
+        exc_en_reg = 1'b0;
         case(opcode_reg)
             OPCODE_ADD_AND_OR_XOR_ANDN_SBSET_MINU_SLTU: begin
                 inst_type_reg = TYPE_R;
@@ -404,7 +405,10 @@ module ID_Stage (
                 csr_wen_reg = 0;
                 mret_reg = 0;
                 // invalid instruction
-                exc_en_reg   = 1;
+                if (opcode_reg == OPCODE_ZERO)
+                    exc_en_reg = 1'b0;
+                else 
+                    exc_en_reg = 1'b1;
                 exc_pc_reg   = pc_reg;
                 exc_code_reg = `ILLEGAL_INSTR;
             end
