@@ -372,7 +372,16 @@ module thinpad_top (
     logic [3:0] wbs3_sel_o;
     logic wbs3_we_o;
 
-    wb_mux_4 wb_mux (
+    logic wbs4_cyc_o;
+    logic wbs4_stb_o;
+    logic wbs4_ack_i;
+    logic [31:0] wbs4_adr_o;
+    logic [31:0] wbs4_dat_o;
+    logic [31:0] wbs4_dat_i;
+    logic [3:0] wbs4_sel_o;
+    logic wbs4_we_o;
+
+    wb_mux_5 wb_mux (
         .clk(sys_clk),
         .rst(sys_rst),
 
@@ -450,7 +459,24 @@ module thinpad_top (
         .wbs3_ack_i(wbs3_ack_i),
         .wbs3_err_i('0),
         .wbs3_rty_i('0),
-        .wbs3_cyc_o(wbs3_cyc_o)
+        .wbs3_cyc_o(wbs3_cyc_o),
+
+        // Slave interface 3 (to vga controller)
+        // Address range: 0x6000_0000 ~ 0x603F_FFFF
+        .wbs3_addr    (32'h6000_0000),
+        .wbs3_addr_msk(32'hFFC0_0000),
+
+        .wbs3_adr_o(wbs4_adr_o),
+        .wbs3_dat_i(wbs4_dat_i),
+        .wbs3_dat_o(wbs4_dat_o),
+        .wbs3_we_o (wbs4_we_o),
+        .wbs3_sel_o(wbs4_sel_o),
+        .wbs3_stb_o(wbs4_stb_o),
+        .wbs3_ack_i(wbs4_ack_i),
+        .wbs3_err_i('0),
+        .wbs3_rty_i('0),
+        .wbs3_cyc_o(wbs4_cyc_o)
+
     );
 
     /* =========== wb MUX end =========== */
