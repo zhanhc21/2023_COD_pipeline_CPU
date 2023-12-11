@@ -26,6 +26,8 @@ module pipeline #(
 
     // csr time signal
     input wire timeout_signal
+    // ICache
+    output reg fence_i_o
 );
   
     // regfile signals
@@ -178,6 +180,32 @@ module pipeline #(
     logic rf_wen_controller;
 
     logic [31:0] exe_mem_instr_i;
+    // BTB signal
+    logic [31:0] exe_branch_src_pc_i;
+    logic [31:0] exe_branch_tgt_pc_i;
+    logic        exe_branch_en_i;
+    logic        exe_branch_mispred_i;
+    logic [31:0] if_now_pc_i;
+    logic [31:0] if_next_pc_o;
+    logic        exe_branch_taken_o;
+    logic        if_hit_o;
+
+    btb u_btb(
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+
+        .exe_branch_src_pc_i(exe_branch_src_pc_i),
+        .exe_branch_tgt_pc_i(exe_branch_tgt_pc_i),
+        .exe_branch_en_i(exe_branch_en_i),
+        .exe_branch_mispred_i(exe_branch_mispred_i),
+
+        .if_now_pc_i(if_now_pc_i),
+        .if_next_pc_o(if_next_pc_o),
+        .if_hit_o(if_hit_o),
+
+        .exe_branch_taken_o(exe_branch_taken_o)
+    );
+
 
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
@@ -187,6 +215,7 @@ module pipeline #(
         // stall signal and flush signal
         .stall_i(if_stall),
         .flush_i(if_flush),
+        .busy_o(if_busy),
 
         // pc mux signals
         .pc_from_exe_i(exe_if_pc),
@@ -204,6 +233,11 @@ module pipeline #(
         .wb_data_i(wbm_data_i_im),
         .wb_sel_o(wbm_sel_im),
         .wb_we_o(wbm_we_im),
+
+        // BTB signals
+        .if_now_pc_o(if_now_pc_i),
+        .if_next_pc_i(if_next_pc_o),
+        .if_hit_i(if_hit_o),
         
         // signals to ID stage
         .id_pc_o(if_id_pc),
@@ -211,6 +245,8 @@ module pipeline #(
 
         // pc to csr as time interrpt occur
         .int_pc_o(if_csr_pc)
+        // signal to ICache
+        .fence_i_o(fence_i_o)
     );
 
     /* ========== ID stage ========== */
@@ -324,7 +360,15 @@ module pipeline #(
         // signals to csr
         .csr_wen_o(csr_wen_o),
         .csr_wdata_o(csr_wdata_o),
-        .csr_waddr_o(csr_waddr_o)
+        .csr_waddr_o(csr_waddr_o),
+
+        // signals to BTB
+        .exe_branch_src_pc_o(exe_branch_src_pc_i),
+        .exe_branch_tgt_pc_o(exe_branch_tgt_pc_i),
+        .exe_branch_en_o(exe_branch_en_i),
+        .exe_branch_mispred_o(exe_branch_mispred_i),
+
+        .exe_branch_taken_i(exe_branch_taken_o)
     );
 
     /* ========== MEM stage ========== */
@@ -438,6 +482,7 @@ module pipeline #(
         // memory busy signals (IF & MEM)
         .mem_finish_i(mem_finish),
         .mem_busy_i(mem_busy),
+        .if_busy_i(if_busy),
 
         // stall and flush signals
         .if_stall_o(if_stall),
