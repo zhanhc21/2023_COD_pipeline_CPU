@@ -162,6 +162,42 @@ module pipeline #(
         .exe_branch_taken_o(exe_branch_taken_o)
     );
 
+    // dcache signal
+    logic [31:0] mem2dcache_wb_addr;
+    logic [31:0] mem2dcache_wb_data;
+    logic [ 3:0] mem2dcache_wb_sel;
+    logic        mem2dcache_is_store;
+    logic        mem2dcache_is_load;
+    logic        mem2dcache_data_is_from_load;
+    // need write back
+    logic [31:0] dcache2mem_wb_addr;
+    logic [31:0] dcache2mem_wb_data;
+    logic        dcache2mem_wb_en;
+    // load from dcache
+    logic [31:0] dcache2mem_load_data;
+    logic        dcache2mem_hit;
+
+    dcache u_dcache(
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+
+        // signals from MEM stage
+        .mem_wb_addr_i(mem2dcache_wb_addr),
+        .mem_wb_data_i(mem2dcache_wb_data),
+        .mem_wb_sel_i(mem2dcache_wb_sel),
+        .mem_is_store_i(mem2dcache_is_store),
+        .mem_is_load_i(mem2dcache_is_load),
+        .mem_data_is_from_load_i(mem2dcache_data_is_from_load),
+
+        // need write back
+        .mem_write_back_addr_o(dcache2mem_wb_addr),
+        .mem_write_back_data_o(dcache2mem_wb_data),
+        .mem_write_back_en_o(dcache2mem_wb_en),
+
+        // load from dcache
+        .mem_hit_o(dcache2mem_hit),
+        .mem_load_data_o(dcache2mem_load_data)
+    );
 
     /* ========== IF stage ========== */
     IF_Stage u_if_stage(
