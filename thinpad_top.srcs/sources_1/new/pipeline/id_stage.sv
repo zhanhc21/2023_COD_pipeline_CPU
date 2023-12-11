@@ -402,8 +402,8 @@ module ID_Stage (
                 rs1_reg = 5'b0;
                 rs2_reg = 5'b0;
                 csr_wen_reg = 0;
+
                 mret_reg = 0;
-                // invalid instruction
                 exc_en_reg   = 1;
                 exc_pc_reg   = pc_reg;
                 exc_code_reg = `ILLEGAL_INSTR;
@@ -522,7 +522,7 @@ module ID_Stage (
             end else begin
                 exe_csr_wen_o <= 1'b0;
             end
-            mret_o        <= mret_reg;
+            mret_o         <= mret_reg;
             exe_exc_en_o   <= exc_en_reg;
             exe_exc_pc_o   <= exc_pc_reg;
             exe_exc_code_o <= exc_code_reg;

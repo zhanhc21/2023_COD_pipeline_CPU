@@ -12,7 +12,7 @@ module IF_Stage #(
 
     // pc mux signals
     input wire [31:0] pc_from_exe_i,
-    input wire        pc_mux_i,  // 0: pc, 1: exe_pc
+    input wire        pc_mux_i,     // 0: pc, 1: exe_pc
     input wire [31:0] pc_from_csr_i,
     input wire        pc_mux_ret_i, // 1: enable
     input wire        pc_mux_exc_i,
@@ -91,6 +91,9 @@ module IF_Stage #(
             if (pc_mux_i == 1) begin
                 pc_reg <= pc_from_exe_i;
                 pc_now_reg <= 32'h0;
+            end else if (pc_mux_exc_i | pc_mux_ret_i) begin
+                pc_reg <= pc_from_csr_i;
+                pc_now_reg <= 32'h0;
             end
             state <= STATE_IDLE;
         end else begin
@@ -103,6 +106,11 @@ module IF_Stage #(
                 if (pc_mux_i == 1) begin
                     wb_addr_o <= pc_from_exe_i;
                     pc_reg <= pc_from_exe_i;
+                    pc_now_reg <= 32'h0;
+                    inst_reg <= 32'h0;
+                end else if (pc_mux_exc_i | pc_mux_ret_i) begin
+                    wb_addr_o <= pc_from_csr_i;
+                    pc_reg <= pc_from_csr_i;
                     pc_now_reg <= 32'h0;
                     inst_reg <= 32'h0;
                 end else begin

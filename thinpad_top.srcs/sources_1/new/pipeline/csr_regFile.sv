@@ -79,6 +79,8 @@ module csr_regFile (
     // current privilege mode
     logic [ 1:0] cur_p_mode;   
 
+    logic        time_interrupt_occur;
+    assign time_interrupt_occur = mie_mtie & mip_mtip;
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
         if (rst_i) begin
@@ -180,6 +182,11 @@ module csr_regFile (
                     end
                 endcase
             end else begin
+                if (timer_i) begin
+                    mip_mtip <= 1'b1;
+                end else begin
+                    mip_mtip <= 1'b0;
+                end
                 // exception process
                 if (exc_en_i) begin
                     mcause_interrupt <= `EXCEPTION;
@@ -205,12 +212,10 @@ module csr_regFile (
                     end else begin
                         mepc <= exc_pc_i;
                     end
-                end else if (timer_i) begin
+                end else if (time_interrupt_occur) begin
                     // time interrupt process
                     mcause_interrupt <= `INTERRUPT;
                     mcause_exc_code  <= `MACHINE_TIMER_INTERRUPT;
-                    mip_mtip         <= 1'b1;
-                    mie_mtie         <= 1'b1;
                     mepc             <= int_pc_i;
                     mstatus_mpie     <= mstatus_mie;
                     mstatus_mie      <= 1'b0;
@@ -220,7 +225,6 @@ module csr_regFile (
                     mstatus_mie  <= mstatus_mpie;
                     mstatus_mpie <= 1'b1;
                     mip_mtip     <= 1'b0;
-                    mie_mtie     <= 1'b0;
                 end
             end
         end
@@ -242,7 +246,7 @@ module csr_regFile (
             csr_pc_o     = {mtvec_base, 2'b0};
             pc_mux_exc_o = 1'b1;
             pc_mux_ret_o = 1'b0;
-        end else if (timer_i) begin
+        end else if (time_interrupt_occur) begin
             if (mtvec_mode == `DIRECT) begin
                 csr_pc_o = {mtvec_base, 2'b0};
             end else begin
