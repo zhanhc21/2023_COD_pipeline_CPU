@@ -471,7 +471,6 @@
     <FileSet Name="blk_mem" Type="BlockSrcs" RelSrcDir="$PSRCDIR/blk_mem">
       <File Path="$PSRCDIR/sources_1/ip/blk_mem/blk_mem.xci">
         <FileInfo>
-          <Attr Name="IsGlobalInclude" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
