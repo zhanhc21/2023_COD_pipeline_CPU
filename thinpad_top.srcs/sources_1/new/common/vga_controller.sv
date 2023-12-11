@@ -54,18 +54,15 @@ module vga_controller #(
 
     blk_mem u_bram (
         .clka(clk_i), 
-        .ena(1'b1), 
-        .wea(1'b0),
-        .addra(addr),      // input wire [10:0] addra
-        .dina(32'b0),        // input wire [31:0] dina
-        .douta(dout),
+        .ena(wb_we_i), 
+        .wea(wb_we_i),
+        .addra(wb_addr_i[10:0]),      // input wire [10:0] addra
+        .dina(wb_data_i),        // input wire [31:0] dina
 
         .clkb(clk_i),
-        .enb(wb_we_i), 
-        .web(wb_we_i),          
-        .addrb(wb_addr_i[10:0]),      // input wire [10:0] addrb
-        .dinb(wb_data_i),        // input wire [31:0] dinb
-        .doutb()
+        .enb(1'b1),           
+        .addrb(addr),      // input wire [10:0] addrb
+        .doutb(dout) // input wire [31:0] dinb
     );
 
     // hdata
