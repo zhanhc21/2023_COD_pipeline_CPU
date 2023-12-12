@@ -84,11 +84,14 @@ module MEM_Stage (
     typedef enum logic [3:0] {
         STATE_IDLE = 0,
 
-        STATE_LOAD_WRITEBACK = 1,  // load stage, dcache data writeback to ram
-        STATE_LOAD_WB = 2,  // load stage, load data from ram
+        STATE_STORE_INIT = 1,
+        STATE_LOAD_INIT = 2,
 
-        STATE_STORE_WRITEBACK = 3,  // store stage, dcache data writeback to ram
-        STATE_STORE_WB = 4  // store stage, store data to ram (not memory)
+        STATE_LOAD_WRITEBACK = 3,  // load stage, dcache data writeback to ram
+        STATE_LOAD_WB = 4,  // load stage, load data from ram
+
+        STATE_STORE_WRITEBACK = 5,  // store stage, dcache data writeback to ram
+        STATE_STORE_WB = 6  // store stage, store data to ram (not memory)
     } state_t;
     state_t state;
 
@@ -181,8 +184,6 @@ module MEM_Stage (
         endcase
     end
 
-    reg no_need_ram;  // 1: using dcache
-
     always_comb begin
         if (mem_mem_en_i) begin
             if (mem_alu_result_i[31:23] == 9'b100000000) begin // ram memory
@@ -233,12 +234,21 @@ module MEM_Stage (
                     end
 
                     STATE_LOAD_WB: begin
-                        mem_wb_addr_o = mem_alu_result_i;
-                        mem_wb_data_o = mem_mem_wdata_i;
-                        mem_wb_sel_o = 4'b1111;
-                        mem_is_store_o = 1'b1;
-                        mem_is_load_o = 1'b0;
-                        mem_data_is_from_load_o = 1'b1;
+                        if (wb_ack_i) begin
+                            mem_wb_addr_o = mem_alu_result_i;
+                            mem_wb_data_o = wb_data_i;
+                            mem_wb_sel_o = 4'b1111;
+                            mem_is_store_o = 1'b1;
+                            mem_is_load_o = 1'b0;
+                            mem_data_is_from_load_o = 1'b1;
+                        end else begin
+                            mem_wb_addr_o = 32'b0;
+                            mem_wb_data_o = 32'b0;
+                            mem_wb_sel_o = 4'b0;
+                            mem_is_store_o = 1'b0;
+                            mem_is_load_o = 1'b0;
+                            mem_data_is_from_load_o = 1'b0;
+                        end
                     end
                 endcase
             end else begin // I/O or else
@@ -276,7 +286,6 @@ module MEM_Stage (
             busy_o      <= 1'b0;
 
             state <= STATE_IDLE;
-            no_need_ram <= 1'b0;
         end else begin
             if (mem_mem_en_i) begin
                 if (mem_alu_result_i[31:23] == 9'b100000000) begin // ram memory
@@ -294,7 +303,6 @@ module MEM_Stage (
                                     wb_sel_o <= mem_write_back_sel_i;
 
                                     state <= STATE_STORE_WRITEBACK;
-                                    no_need_ram <= 1'b0;
                                 end else begin
                                     wb_cyc_o  <= 1'b0;
                                     wb_stb_o  <= 1'b0;
@@ -311,7 +319,6 @@ module MEM_Stage (
                                     wb_rf_wen_o <= mem_rf_wen_i;
 
                                     state <= STATE_IDLE;
-                                    no_need_ram <= 1'b1;
                                 end
                             end else begin  // L type
                                 if (mem_hit_i) begin  // get from dcache
@@ -341,7 +348,6 @@ module MEM_Stage (
                                     end
 
                                     state <= STATE_IDLE;
-                                    no_need_ram <= 1'b1;
                                 end else if (mem_write_back_en_i) begin
                                     wb_cyc_o  <= 1'b1;
                                     wb_stb_o  <= 1'b1;
@@ -353,7 +359,6 @@ module MEM_Stage (
                                     wb_sel_o <= mem_write_back_sel_i;
 
                                     state <= STATE_LOAD_WRITEBACK;
-                                    no_need_ram <= 1'b0;
                                 end else begin
                                     wb_cyc_o  <= 1'b1;
                                     wb_stb_o  <= 1'b1;
@@ -365,13 +370,11 @@ module MEM_Stage (
                                     wb_sel_o <= 4'b1111;
 
                                     state <= STATE_LOAD_WB;
-                                    no_need_ram <= 1'b0;
                                 end
                             end
                         end
 
                         STATE_STORE_WRITEBACK: begin
-                            no_need_ram <= 1'b0;
                             if (wb_ack_i) begin
                                 wb_cyc_o  <= 1'b0;
                                 wb_stb_o  <= 1'b0;
@@ -387,7 +390,6 @@ module MEM_Stage (
                         end
 
                         STATE_LOAD_WRITEBACK: begin
-                            no_need_ram <= 1'b0;
                             if (wb_ack_i) begin
                                 wb_cyc_o  <= 1'b1;
                                 wb_stb_o  <= 1'b1;
@@ -403,7 +405,6 @@ module MEM_Stage (
                         end
 
                         STATE_LOAD_WB: begin
-                            no_need_ram <= 1'b0;
                             if (wb_ack_i) begin
                                 wb_cyc_o  <= 1'b0;
                                 wb_stb_o  <= 1'b0;
@@ -431,7 +432,6 @@ module MEM_Stage (
                                 end
 
                                 state <= STATE_IDLE;
-                                no_need_ram <= 1'b1;
                             end
                         end
                     endcase
@@ -465,11 +465,9 @@ module MEM_Stage (
 
                                 state <= STATE_LOAD_WB;
                             end
-                            no_need_ram <= 1'b0;
                         end
 
                         STATE_STORE_WB: begin
-                            no_need_ram <= 1'b0;
                             if (wb_ack_i) begin
                                 wb_cyc_o  <= 1'b0;
                                 wb_stb_o  <= 1'b0;
@@ -485,7 +483,6 @@ module MEM_Stage (
                         end
 
                         STATE_LOAD_WB: begin
-                            no_need_ram <= 1'b0;
                             if (wb_ack_i && wb_addr_o != 32'h0) begin
                                 wb_cyc_o  <= 1'b0;
                                 wb_stb_o  <= 1'b0;
@@ -524,7 +521,6 @@ module MEM_Stage (
                     wb_sel_o  <= 4'b0;
 
                     state <= STATE_IDLE;
-                    no_need_ram <= 1'b0;
                 end
             end else begin 
                 // no need for ram
@@ -543,7 +539,6 @@ module MEM_Stage (
                 wb_rf_wen_o <= mem_rf_wen_i;
 
                 state <= STATE_IDLE;
-                no_need_ram <= 1'b0;
             end
         end
     end
