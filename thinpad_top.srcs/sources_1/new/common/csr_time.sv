@@ -77,5 +77,5 @@ module csr_time (
         end
     end
 
-    assign timer_o = (mtime > mtimecmp) & (mtimecmp != 64'b0);
+    assign timer_o = mtime > mtimecmp;
 endmodule

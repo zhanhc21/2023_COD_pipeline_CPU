@@ -79,7 +79,7 @@ module csr_regFile (
     logic [ 1:0] cur_p_mode;   
 
     logic        time_interrupt_occur;
-    assign time_interrupt_occur = mie_mtie & mip_mtip;
+    assign time_interrupt_occur = mie_mtie & mip_mtip & (cur_p_mode == `U_MODE);
     assign timer_o = time_interrupt_occur;
 
     always_ff @ (posedge clk_i or posedge rst_i) begin
