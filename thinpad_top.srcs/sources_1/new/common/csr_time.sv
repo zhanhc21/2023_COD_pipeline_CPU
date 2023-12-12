@@ -44,9 +44,6 @@ module csr_time (
             mtimecmp <= 64'b0;
             wb_ack_o <= 1'b0;
         end else begin
-            if (timer_o && mtimecmp != 64'b0) 
-                mtime <= 64'h0;
-            else 
             case (state)
                 IDLE: begin
                     if (wb_stb_i & wb_cyc_i) begin
@@ -69,7 +66,7 @@ module csr_time (
                         wb_ack_o <= 1'b1;
                         state <= DONE;
                     end else
-                        mtime <= mtime + 32'h100;
+                        mtime <= mtime + 32'h1;
                 end
                 DONE: begin
                     wb_ack_o <= 1'b0;
