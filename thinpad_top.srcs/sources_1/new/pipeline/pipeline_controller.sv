@@ -26,6 +26,10 @@ module pipeline_controller(
     input wire        wb_rf_wen_i,
     input wire        exe_if_pc_mux_i,
 
+    // signals from csr registers
+    input wire        csr_pc_mux_ret_i,
+    input wire        csr_pc_mux_exc_i,
+
     // signals from WB
     input wire [31:0] rf_wdata_controller_i,
     input wire [ 4:0] rf_waddr_controller_i,
@@ -74,7 +78,11 @@ module pipeline_controller(
 //            if_flush_o = 1'b1;
             id_flush_o = 1'b1;
 //            exe_flush_o = 1'b1;
-        end 
+        end else if (csr_pc_mux_exc_i | csr_pc_mux_ret_i) begin // jump to mtvec, flush ID & EXE & MEM
+            if_flush_o = 1'b1;
+            id_flush_o = 1'b1;
+            exe_flush_o = 1'b1;
+        end
         // else if (exe_mem_en_i && !exe_mem_wen_i &&  // load hazard
         //     (exe_rf_waddr_i == id_rf_raddr_a_i || exe_rf_waddr_i == id_rf_raddr_b_i)) begin
         //     if_stall_o = 1'b1;

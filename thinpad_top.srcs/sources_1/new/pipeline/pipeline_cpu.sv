@@ -72,7 +72,7 @@ module pipeline #(
     logic        exc_occur_signal;
     logic        ret_occur_signal;
     logic [31:0] csr_if_pc;  // mtvec异常处理程序地址 / mepc异常处地址
-    logic [31:0] if_csr_pc;  // 时钟中断处地址
+    logic        time_interrupt_occur;  // serve as signal to get pc as time interrupt occuring from mem stages
 
     csr_regFile u_csr_regFile (
         .clk_i(clk_i),
@@ -87,7 +87,7 @@ module pipeline #(
         .exc_code_i(exc_code_signal),
         .exc_pc_i(exc_pc_signal),
         .timer_i(timeout_signal),
-        .int_pc_i(if_csr_pc),
+        .timer_o(time_interrupt_occur),
         .csr_pc_o(csr_if_pc),
         .pc_mux_ret_o(ret_occur_signal),
         .pc_mux_exc_o(exc_occur_signal)
@@ -207,10 +207,7 @@ module pipeline #(
         
         // signals to ID stage
         .id_pc_o(if_id_pc),
-        .id_instr_o(if_id_instr),
-
-        // pc to csr as time interrpt occur
-        .int_pc_o(if_csr_pc)
+        .id_instr_o(if_id_instr)
     );
 
     /* ========== ID stage ========== */
@@ -371,7 +368,8 @@ module pipeline #(
         // signals to csr
         .exc_en_o(exc_en_signal),
         .exc_code_o(exc_code_signal),
-        .exc_pc_o(exc_pc_signal)
+        .exc_pc_o(exc_pc_signal),
+        .time_en_i(time_interrupt_occur)
     );
 
     /* ========== WB stage ========== */
@@ -429,6 +427,10 @@ module pipeline #(
         .wb_rf_waddr_i(mem_wb_rf_waddr),
         .wb_rf_wen_i(mem_wb_rf_wen),
         .exe_if_pc_mux_i(exe_if_pc_mux),
+
+        // signals from csr registers
+        .csr_pc_mux_ret_i(ret_occur_signal),
+        .csr_pc_mux_exc_i(exc_occur_signal),
 
         // signals from WB
         .rf_wdata_controller_i(rf_wdata_controller),
