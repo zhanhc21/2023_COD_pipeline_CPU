@@ -107,7 +107,7 @@ module MEM_Stage (
             if (!mem_mem_en_i | past_mem_instr_i != mem_instr_i)
                 mem_finish <= 1'b0;
             if (mem_alu_result_i[31:23] == 9'b100000000) begin // ram memory
-                if (state == STATE_STORE_WRITEBACK || state == STATE_LOAD_WB) begin
+                if (state == STATE_STORE_WRITEBACK || state == STATE_LOAD_WB || state == STATE_STORE_WB) begin
                     if (wb_ack_i)
                         mem_finish <= 1'b1;
                     else
@@ -224,6 +224,15 @@ module MEM_Stage (
                         mem_data_is_from_load_o = 1'b0;
                     end
 
+                    STATE_STORE_WB: begin
+                        mem_wb_addr_o = 32'b0;
+                        mem_wb_data_o = 32'b0;
+                        mem_wb_sel_o = 4'b0;
+                        mem_is_store_o = 1'b0;
+                        mem_is_load_o = 1'b0;
+                        mem_data_is_from_load_o = 1'b0;
+                    end
+
                     STATE_LOAD_WRITEBACK: begin
                         mem_wb_addr_o = 32'b0;
                         mem_wb_data_o = 32'b0;
@@ -304,21 +313,25 @@ module MEM_Stage (
 
                                     state <= STATE_STORE_WRITEBACK;
                                 end else begin
-                                    wb_cyc_o  <= 1'b0;
-                                    wb_stb_o  <= 1'b0;
-                                    wb_we_o   <= 1'b0;
-                                    busy_o    <= 1'b0;
+                                    wb_cyc_o  <= 1'b1;
+                                    wb_stb_o  <= 1'b1;
+                                    wb_we_o   <= 1'b1;
+                                    busy_o    <= 1'b1;
 
-                                    wb_data_o <= 32'b0;
-                                    wb_addr_o <= 32'b0;
-                                    wb_sel_o  <= 4'b0;
+                                    wb_addr_o <= mem_alu_result_i;
+                                    wb_data_o <= mem_mem_wdata_i;
+                                    if (instr_type == SB) begin
+                                        case (mem_alu_result_i[1:0])
+                                            2'b00: wb_sel_o <= 4'b0001;
+                                            2'b01: wb_sel_o <= 4'b0010;
+                                            2'b10: wb_sel_o <= 4'b0100;
+                                            2'b11: wb_sel_o <= 4'b1000;
+                                        endcase
+                                    end else begin
+                                        wb_sel_o <= 4'b1111;
+                                    end
 
-                                    wb_pc_o <= mem_pc_i;
-                                    wb_instr_o <= mem_instr_i;
-                                    wb_rf_waddr_o <= mem_rf_waddr_i;
-                                    wb_rf_wen_o <= mem_rf_wen_i;
-
-                                    state <= STATE_IDLE;
+                                    state <= STATE_STORE_WB;
                                 end
                             end else begin  // L type
                                 if (mem_hit_i) begin  // get from dcache
@@ -375,6 +388,21 @@ module MEM_Stage (
                         end
 
                         STATE_STORE_WRITEBACK: begin
+                            if (wb_ack_i) begin
+                                wb_cyc_o  <= 1'b0;
+                                wb_stb_o  <= 1'b0;
+                                wb_we_o   <= 1'b0;
+                                busy_o    <= 1'b0;
+                                wb_pc_o <= mem_pc_i;
+                                wb_instr_o <= mem_instr_i;
+                                wb_rf_waddr_o <= mem_rf_waddr_i;
+                                wb_rf_wen_o <= mem_rf_wen_i;
+
+                                state <= STATE_IDLE;
+                            end
+                        end
+
+                        STATE_STORE_WB: begin
                             if (wb_ack_i) begin
                                 wb_cyc_o  <= 1'b0;
                                 wb_stb_o  <= 1'b0;
