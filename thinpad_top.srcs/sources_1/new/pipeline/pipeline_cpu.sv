@@ -172,10 +172,11 @@ module pipeline #(
     // need write back
     logic [31:0] dcache2mem_wb_addr;
     logic [31:0] dcache2mem_wb_data;
+    logic [ 3:0] dcache2mem_wb_sel;
     logic        dcache2mem_wb_en;
     // load from dcache
-    logic [31:0] dcache2mem_load_data;
     logic        dcache2mem_hit;
+    logic [31:0] dcache2mem_load_data;
 
     dcache u_dcache(
         .clk_i(clk_i),
@@ -192,6 +193,7 @@ module pipeline #(
         // need write back
         .mem_write_back_addr_o(dcache2mem_wb_addr),
         .mem_write_back_data_o(dcache2mem_wb_data),
+        .mem_write_back_sel_o(dcache2mem_wb_sel),
         .mem_write_back_en_o(dcache2mem_wb_en),
 
         // load from dcache
