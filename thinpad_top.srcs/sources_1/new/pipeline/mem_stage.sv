@@ -34,6 +34,9 @@ module MEM_Stage (
     output reg [30:0] exc_code_o,
     output reg [31:0] exc_pc_o,
 
+    // time interrupt signal from csr
+    input wire        time_en_i,
+
     // stall signal and flush signal
     output reg mem_finish_o,
     output reg busy_o,
@@ -253,7 +256,10 @@ module MEM_Stage (
                 wb_rf_wen_o <= mem_rf_wen_i;
             end
             exc_en_o   <= mem_exc_en_i;
-            exc_pc_o   <= mem_exc_pc_i;
+            if (time_en_i)
+                exc_pc_o <= mem_pc_i;
+            else
+                exc_pc_o <= mem_exc_pc_i;
             exc_code_o <= mem_exc_code_i;
         end
     end

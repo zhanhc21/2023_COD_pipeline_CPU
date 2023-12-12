@@ -404,9 +404,16 @@ module ID_Stage (
                 csr_wen_reg = 0;
                 mret_reg = 0;
                 // invalid instruction
-                exc_en_reg   = 1;
-                exc_pc_reg   = pc_reg;
-                exc_code_reg = `ILLEGAL_INSTR;
+                if (opcode_reg == OPCODE_ZERO) begin
+                    exc_en_reg   = 1'b0;
+                    exc_pc_reg   = 1'b0;
+                    exc_code_reg = `NOP;
+                end else begin
+                    exc_en_reg   = 1'b1;
+                    exc_pc_reg   = pc_reg;
+                    exc_code_reg = `ILLEGAL_INSTR;
+                end
+                
             end
         endcase
     end
