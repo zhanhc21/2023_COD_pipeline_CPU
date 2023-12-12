@@ -35,8 +35,6 @@ module IF_Stage #(
     // signals to ID stage
     output reg [31:0] id_pc_o,
     output reg [31:0] id_instr_o,
-    // pc to csr as time interrupt occur
-    output reg [31:0] int_pc_o,
 
     // signal to ICache
     output reg fence_i_o
@@ -91,6 +89,9 @@ module IF_Stage #(
             if (pc_mux_i == 1) begin
                 pc_reg <= pc_from_exe_i;
                 pc_now_reg <= 32'h0;
+            end else if (pc_mux_exc_i | pc_mux_ret_i) begin
+                pc_reg <= pc_from_csr_i;
+                pc_now_reg <= 32'h0;
             end
             state <= STATE_IDLE;
         end else begin
@@ -103,6 +104,11 @@ module IF_Stage #(
                 if (pc_mux_i == 1) begin
                     wb_addr_o <= pc_from_exe_i;
                     pc_reg <= pc_from_exe_i;
+                    pc_now_reg <= 32'h0;
+                    inst_reg <= 32'h0;
+                end else if (pc_mux_exc_i | pc_mux_ret_i) begin
+                    wb_addr_o <= pc_from_csr_i;
+                    pc_reg <= pc_from_csr_i;
                     pc_now_reg <= 32'h0;
                     inst_reg <= 32'h0;
                 end else begin
@@ -144,11 +150,4 @@ module IF_Stage #(
     end
     
     assign if_now_pc_o = pc_reg;
-
-    always_comb begin
-        if (pc_mux_exc_i)
-            int_pc_o = pc_reg;
-        else
-            int_pc_o = 32'b0;
-    end
 endmodule

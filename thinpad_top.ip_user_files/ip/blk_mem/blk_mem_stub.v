@@ -1,10 +1,10 @@
 // Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2019.2 (win64) Build 2708876 Wed Nov  6 21:40:23 MST 2019
-// Date        : Mon Dec 11 21:36:08 2023
-// Host        : LAPTOP-5KO6II7D running 64-bit major release  (build 9200)
+// Date        : Wed Dec 13 01:09:34 2023
+// Host        : LAPTOP-MQQNJB6E running 64-bit major release  (build 9200)
 // Command     : write_verilog -force -mode synth_stub
-//               c:/study/rv-2023-grp/cod23-grp26/thinpad_top.srcs/sources_1/ip/blk_mem/blk_mem_stub.v
+//               D:/Computer_Organization/cod23-grp26/thinpad_top.srcs/sources_1/ip/blk_mem/blk_mem_stub.v
 // Design      : blk_mem
 // Purpose     : Stub declaration of top-level module interface
 // Device      : xc7a100tfgg676-2L

@@ -84,7 +84,8 @@ typedef enum logic [6:0] {
     OPCODE_LB_LW = 7'b0000011,
     OPCODE_LUI = 7'b0110111,
     OPCODE_SB_SW = 7'b0100011,
-    OPCODE_CSRRC_CSRRS_CSRRW_EBREAK_ECALL_MRET = 7'b1110011
+    OPCODE_CSRRC_CSRRS_CSRRW_EBREAK_ECALL_MRET = 7'b1110011,
+    OPCODE_ZERO = 7'b0
 } opcode_t;
 
 typedef enum logic [2:0] {
