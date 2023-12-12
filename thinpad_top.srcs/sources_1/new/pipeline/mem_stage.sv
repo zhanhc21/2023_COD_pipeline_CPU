@@ -84,14 +84,11 @@ module MEM_Stage (
     typedef enum logic [3:0] {
         STATE_IDLE = 0,
 
-        STATE_STORE_INIT = 1,
-        STATE_LOAD_INIT = 2,
+        STATE_LOAD_WRITEBACK = 1,  // load stage, dcache data writeback to ram
+        STATE_LOAD_WB = 2,  // load stage, load data from ram
 
-        STATE_LOAD_WRITEBACK = 3,  // load stage, dcache data writeback to ram
-        STATE_LOAD_WB = 4,  // load stage, load data from ram
-
-        STATE_STORE_WRITEBACK = 5,  // store stage, dcache data writeback to ram
-        STATE_STORE_WB = 6  // store stage, store data to ram (not memory)
+        STATE_STORE_WRITEBACK = 3,  // store stage, dcache data writeback to ram
+        STATE_STORE_WB = 4  // store stage, store data to ram (not memory)
     } state_t;
     state_t state;
 
@@ -107,9 +104,7 @@ module MEM_Stage (
             if (!mem_mem_en_i | past_mem_instr_i != mem_instr_i)
                 mem_finish <= 1'b0;
             if (mem_alu_result_i[31:23] == 9'b100000000) begin // ram memory
-                if (state == STATE_LOAD_INIT) begin
-                    mem_finish <= 1'b1;
-                end else if (state == STATE_STORE_WRITEBACK || state == STATE_LOAD_WB || state == STATE_STORE_WB) begin
+                if (state == STATE_STORE_WRITEBACK || state == STATE_LOAD_WB || state == STATE_STORE_WB) begin
                     if (wb_ack_i)
                         mem_finish <= 1'b1;
                     else
@@ -423,10 +418,6 @@ module MEM_Stage (
 
                                 state <= STATE_IDLE;
                             end
-                        end
-
-                        STATE_LOAD_INIT: begin
-                            state <= STATE_IDLE;
                         end
 
                         STATE_LOAD_WRITEBACK: begin

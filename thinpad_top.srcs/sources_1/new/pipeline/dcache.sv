@@ -1,6 +1,6 @@
 module dcache #(
-    parameter NUM_ENTRIES = 64,
-    parameter TABLE_LENGTH = 6
+    parameter NUM_ENTRIES = 256,
+    parameter TABLE_LENGTH = 8
 ) (
     input wire clk_i,
     input wire rst_i,
