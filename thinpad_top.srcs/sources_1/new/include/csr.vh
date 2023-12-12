@@ -29,10 +29,16 @@
 `define INSTR_ACCESS_FAULT      31'd1
 `define ILLEGAL_INSTR           31'd2
 `define EBREAK                  31'd3
+`define LOAD_ADDR_MISALIGNED    31'd4
+`define LOAD_ACCESS_FAULT       31'd5
+`define STORE_ADDR_MISALIGNED   31'd6
+`define STORE_ACCESS_FAULT      31'd7
 `define ECALL_U                 31'd8
 `define ECALL_S                 31'd9
 `define ECALL_M                 31'd11
 `define INSTR_PAGE_FAULT        31'd12
+`define LOAD_PAGE_FAULT         31'd13
+`define STORE_PAGE_FAULT        31'd14
 `define NOP                     31'd16
 
 // interrupt code

@@ -288,7 +288,6 @@ module EXE_Stage (
 
                                 exe_branch_mispred_o <= 1'b1;
                             end
-
                         end 
 //                        else if (exe_rf_rdata_a_i == exe_rf_rdata_b_i) begin
 //                            if_pc_mux_o <= 1'b1;
