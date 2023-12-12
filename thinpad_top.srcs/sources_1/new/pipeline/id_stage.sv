@@ -413,6 +413,7 @@ module ID_Stage (
                     exc_pc_reg   = pc_reg;
                     exc_code_reg = `ILLEGAL_INSTR;
                 end
+                
             end
         endcase
     end
