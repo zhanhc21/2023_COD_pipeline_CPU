@@ -107,7 +107,9 @@ module MEM_Stage (
             if (!mem_mem_en_i | past_mem_instr_i != mem_instr_i)
                 mem_finish <= 1'b0;
             if (mem_alu_result_i[31:23] == 9'b100000000) begin // ram memory
-                if (state == STATE_STORE_WRITEBACK || state == STATE_LOAD_WB || state == STATE_STORE_WB) begin
+                if (state == STATE_LOAD_INIT) begin
+                    mem_finish <= 1'b1;
+                end else if (state == STATE_STORE_WRITEBACK || state == STATE_LOAD_WB || state == STATE_STORE_WB) begin
                     if (wb_ack_i)
                         mem_finish <= 1'b1;
                     else
@@ -296,11 +298,17 @@ module MEM_Stage (
 
             state <= STATE_IDLE;
         end else begin
+            if (mem_pc_i == 32'h80001710) begin
+                state <= state;
+            end
+
             if (mem_mem_en_i) begin
                 if (mem_alu_result_i[31:23] == 9'b100000000) begin // ram memory
                     case (state)
                         STATE_IDLE: begin
-                            if (mem_mem_wen_i) begin  // S type
+                            if (past_mem_instr_i == mem_instr_i) begin
+                                state <= STATE_IDLE;
+                            end else if (mem_mem_wen_i) begin  // S type
                                 if (mem_write_back_en_i) begin // need writeback
                                     wb_cyc_o  <= 1'b1;
                                     wb_stb_o  <= 1'b1;
@@ -415,6 +423,10 @@ module MEM_Stage (
 
                                 state <= STATE_IDLE;
                             end
+                        end
+
+                        STATE_LOAD_INIT: begin
+                            state <= STATE_IDLE;
                         end
 
                         STATE_LOAD_WRITEBACK: begin
