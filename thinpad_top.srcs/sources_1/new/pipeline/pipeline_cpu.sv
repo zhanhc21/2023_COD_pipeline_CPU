@@ -389,7 +389,25 @@ module pipeline #(
         .wb_instr_o(mem_wb_instr),
         .wb_rf_wdata_o(mem_wb_rf_wdata), // WB data
         .wb_rf_waddr_o(mem_wb_rf_waddr), // WB adddr
-        .wb_rf_wen_o(mem_wb_rf_wen) // if write back (WB)
+        .wb_rf_wen_o(mem_wb_rf_wen), // if write back (WB)
+
+        // dcache signals
+        .mem_wb_addr_o(mem2dcache_wb_addr),
+        .mem_wb_data_o(mem2dcache_wb_data),
+        .mem_wb_sel_o(mem2dcache_wb_sel),
+        .mem_is_store_o(mem2dcache_is_store),
+        .mem_is_load_o(mem2dcache_is_load),
+        .mem_data_is_from_load_o(mem2dcache_data_is_from_load),
+
+        // need write back
+        .mem_write_back_addr_i(dcache2mem_wb_addr),
+        .mem_write_back_data_i(dcache2mem_wb_data),
+        .mem_write_back_sel_i(dcache2mem_wb_sel),
+        .mem_write_back_en_i(dcache2mem_wb_en),
+
+        // load from dcache
+        .mem_hit_i(dcache2mem_hit),
+        .mem_load_data_i(dcache2mem_load_data)
     );
 
     /* ========== WB stage ========== */

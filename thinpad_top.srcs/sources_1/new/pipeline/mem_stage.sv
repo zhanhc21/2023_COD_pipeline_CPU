@@ -34,7 +34,23 @@ module MEM_Stage (
     output reg [31:0] wb_instr_o,
     output reg [31:0] wb_rf_wdata_o, // WB data
     output reg [4:0] wb_rf_waddr_o, // WB adddr
-    output reg        wb_rf_wen_o    // if write back (WB)
+    output reg        wb_rf_wen_o,    // if write back (WB)
+
+    // dcache signals
+    output reg [31:0] mem_wb_addr_o,
+    output reg [31:0] mem_wb_data_o,
+    output reg [ 3:0] mem_wb_sel_o,
+    output reg        mem_is_store_o,  // 1: store
+    output reg        mem_is_load_o,  // 1: load
+    output reg        mem_data_is_from_load_o,  // 1: load first time, means data is clean
+
+    input wire [31:0] mem_write_back_addr_i,
+    input wire [31:0] mem_write_back_data_i,
+    input wire [ 3:0] mem_write_back_sel_i,
+    input wire        mem_write_back_en_i,
+
+    input wire        mem_hit_i,
+    input wire [31:0] mem_load_data_i
 );
 
     logic [6:0]  opcode;
