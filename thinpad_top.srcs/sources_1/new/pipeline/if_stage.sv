@@ -132,7 +132,7 @@ module IF_Stage #(
         if (rst_i) begin
             id_pc_o <= 32'h80000000;
             id_instr_o <= 32'b0;
-        end else begin
+        end else if (!stall_i) begin
             id_pc_o <= pc_now_reg;
             id_instr_o <= inst_reg;
         end
