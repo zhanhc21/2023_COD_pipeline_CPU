@@ -194,8 +194,10 @@ module csr_regFile (
 
                     mstatus_mpie <= mstatus_mie;
                     mstatus_mie  <= 1'b0;
-                    mstatus_mpp  <= cur_p_mode;
-
+                    if (exc_code_i != `ECALL_U) begin
+                        cur_p_mode   <= `M_MODE;
+                        mstatus_mpp  <= `M_MODE;
+                    end
                     if (exc_code_i == `ECALL_U) begin
                         case (cur_p_mode)
                             `U_MODE: mcause_exc_code <= `ECALL_U;
@@ -216,17 +218,17 @@ module csr_regFile (
                     // time interrupt process
                     mcause_interrupt <= `INTERRUPT;
                     mcause_exc_code  <= `MACHINE_TIMER_INTERRUPT;
-                    mie_mtie         <= 1'b0;
+                    mie_mtie         <= 1'b1;
                     mepc             <= exc_pc_i;
                     mstatus_mpie     <= mstatus_mie;
                     mstatus_mie      <= 1'b0;
-                    mstatus_mpp      <= cur_p_mode;
+                    
                 end else if (mret_i) begin
                     cur_p_mode   <= mstatus_mpp;
                     mstatus_mie  <= mstatus_mpie;
                     mstatus_mpie <= 1'b1;
                     mip_mtip     <= 1'b0;
-                    mie_mtie     <= 1'b1;
+                    mie_mtie     <= 1'b0;
                 end
             end
         end
