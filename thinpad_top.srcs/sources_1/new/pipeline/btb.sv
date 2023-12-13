@@ -73,13 +73,13 @@ module btb #(
                 if (exe_branch_mispred_i) begin
                     case(exe_find_pred_reg)
                         2'b00: begin
-                            predict_reg[exe_pc_hash_reg] <= 2'b01;
+                            predict_reg[exe_pc_hash_reg] <= 2'b11;
                         end
                         2'b01: begin
                             predict_reg[exe_pc_hash_reg] <= 2'b11;
                         end
                         2'b11: begin
-                            predict_reg[exe_pc_hash_reg] <= 2'b10;
+                            predict_reg[exe_pc_hash_reg] <= 2'b00;
                         end
                         2'b10: begin
                             predict_reg[exe_pc_hash_reg] <= 2'b00;
