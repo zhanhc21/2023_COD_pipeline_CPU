@@ -480,7 +480,7 @@ module thinpad_top (
         
         // Slave interface 3 (to mtime and mtimecmp)
         // range: 0x2000000 ~ 0x2004000
-        .wbs3_addr      (32'h200_0000),
+        .wbs3_addr      (32'h0200_0000),
         .wbs3_addr_msk  (32'hffff_0000),
 
         .wbs3_adr_o(wbs3_adr_o),
@@ -591,6 +591,25 @@ module thinpad_top (
     );
 
   /* =========== Lab5 Slaves end =========== */
+    // mtime & mtimecmp
+    csr_time u_csr_time (
+        .clk_i(sys_clk),
+        .rst_i(sys_rst),
+
+        .wb_cyc_i(wbs3_cyc_o),
+        .wb_stb_i(wbs3_stb_o),
+        .wb_ack_o(wbs3_ack_i),
+        .wb_adr_i(wbs3_adr_o),
+        .wb_dat_i(wbs3_dat_o),
+        .wb_dat_o(wbs3_dat_i),
+        .wb_sel_i(wbs3_sel_o),
+        .wb_we_i (wbs3_we_o),
+
+        .timer_o (timer)
+    );
+
+
+
     assign video_clk   = clk_50M;
     vga_controller u_vga (
         .clk_i        (sys_clk),

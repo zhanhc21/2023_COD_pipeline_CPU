@@ -436,6 +436,14 @@ module pipeline #(
         .mem_exc_code_i(exe_mem_exc_code),
         .mem_exc_pc_i(exe_mem_exc_pc),
 
+        // 上一条指令可能对csr进行写操作，等到exe阶段写完
+        .exc_en_o(exc_en_signal),
+        .exc_code_o(exc_code_signal),
+        .exc_pc_o(exc_pc_signal),
+
+        // time interrupt signal from csr
+        .time_en_i(timeout_signal),
+
         // stall signal and flush signal
         .mem_finish_o(mem_finish),
         .busy_o(mem_busy),

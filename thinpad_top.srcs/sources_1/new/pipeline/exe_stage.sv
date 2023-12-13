@@ -254,15 +254,15 @@ module EXE_Stage (
             exe_branch_en_o <= 1'b0;
             exe_branch_mispred_o <= 1'b0;
         end else begin
-            if (stall_i == 1'b0 && (exe_pc_i == if_pc_o || exe_pc_i == 32'h0) &&
+            if (stall_i == 1'b0 && (exe_pc_i == if_pc_o || exe_pc_i == 32'h0 || if_pc_o == 32'h0) &&
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
                 if (exe_pc_i == 32'h800005a0) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h8000068c) begin
+                if (exe_pc_i == 32'h800010b0) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h800008a8) begin
+                if (exe_pc_i == 32'h800010ac) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 mem_pc_o         <= exe_pc_i;
@@ -462,6 +462,20 @@ module EXE_Stage (
 
                         exe_branch_en_o <= 1'b0;
                         exe_branch_mispred_o <= 1'b0;
+                    end
+                    MRET: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= 32'h0;
+                        
+                        exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;   
+                    end
+                    ECALL: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= 32'h0;
+                        
+                        exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;   
                     end
                     // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu,sltu,ebreak,ecall,mret
                     default: begin

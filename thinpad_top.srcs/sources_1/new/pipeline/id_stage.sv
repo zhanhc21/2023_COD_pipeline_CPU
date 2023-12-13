@@ -418,26 +418,26 @@ module ID_Stage (
         endcase
 
         // instuction address misaligned
-        if (!(pc_reg & 32'd3)) begin
-            exc_en_reg   = 1'b1;
-            exc_pc_reg   = pc_reg;
-            exc_code_reg = `INSTR_ADDR_MISALIGNED;
-        end else begin
-            exc_en_reg   = 1'b0;
-            exc_pc_reg   = 32'b0;
-            exc_code_reg = `NOP;
-        end
+//        if (!(pc_reg & 32'd3)) begin
+//            exc_en_reg   = 1'b1;
+//            exc_pc_reg   = pc_reg;
+//            exc_code_reg = `INSTR_ADDR_MISALIGNED;
+//        end else begin
+//            exc_en_reg   = 1'b0;
+//            exc_pc_reg   = 32'b0;
+//            exc_code_reg = `NOP;
+//        end
 
         // instuction access fault
-        if (pc_reg < 32'h80000000) begin
-            exc_en_reg   = 1'b1;
-            exc_pc_reg   = pc_reg;
-            exc_code_reg = `INSTR_ACCESS_FAULT;
-        end else begin
-            exc_en_reg   = 1'b0;
-            exc_pc_reg   = 32'b0;
-            exc_code_reg = `NOP;
-        end
+        // if (pc_reg < 32'h80000000) begin
+        //     exc_en_reg   = 1'b1;
+        //     exc_pc_reg   = pc_reg;
+        //     exc_code_reg = `INSTR_ACCESS_FAULT;
+        // end else begin
+        //     exc_en_reg   = 1'b0;
+        //     exc_pc_reg   = 32'b0;
+        //     exc_code_reg = `NOP;
+        // end
 
         // load address misaligned
         // if (inst_type_reg == TYPE_I & imm_gen_imm_i) begin
@@ -510,6 +510,10 @@ module ID_Stage (
             exe_rf_waddr_o <= 5'b0;
             exe_rf_wen_o <= 1'b0;
 
+            mret_o         <= 1'b0;
+            exe_exc_en_o   <= 1'b0;
+            exe_exc_pc_o   <= 32'b0;
+            exe_exc_code_o <= `NOP;
             exe_csr_waddr_o <= 12'b0;
             exe_csr_wen_o <= 1'b0;
         end else begin
@@ -519,11 +523,13 @@ module ID_Stage (
                 exe_first_time_o <= 1'b0;
             end
             exe_pc_o <= pc_reg;
-            if (!exc_en_reg) begin
-                exe_instr_o <= inst_reg;
-            end else begin
-                exe_instr_o <= 32'h0;
-            end
+            // why ?
+//            if (!exc_en_reg) begin
+//                exe_instr_o <= inst_reg;
+//            end else begin
+//                exe_instr_o <= 32'h0;
+//            end
+            exe_instr_o <= inst_reg;
             exe_rf_raddr_a_o <= rs1_reg;
             exe_rf_raddr_b_o <= rs2_reg;
             exe_rf_rdata_a_o <= rdata_a_reg;
