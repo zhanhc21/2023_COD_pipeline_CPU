@@ -91,7 +91,13 @@ module MEM_Stage (
         ANDN  = 19,
         SBSET = 20,
         MINU  = 21,
-        NOP   = 22
+        NOP   = 22,
+        CSRRC = 23,
+        CSRRS = 24,
+        CSRRW = 25,
+        ECALL = 26,
+        EBREAK= 27,
+        MRET  = 28
     } op_type;
     op_type instr_type, past_instr_type;
 
