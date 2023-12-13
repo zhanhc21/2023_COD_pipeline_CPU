@@ -256,13 +256,13 @@ module EXE_Stage (
         end else begin
             if (stall_i == 1'b0 && (exe_pc_i == if_pc_o || exe_pc_i == 32'h0) &&
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
-                if (exe_pc_i == 32'h80000368) begin
+                if (exe_pc_i == 32'h800005a0) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h800004e0) begin
+                if (exe_pc_i == 32'h8000068c) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h80000100) begin
+                if (exe_pc_i == 32'h800008a8) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 mem_pc_o         <= exe_pc_i;
@@ -449,7 +449,7 @@ module EXE_Stage (
                     end
                     CSRRS: begin
                         if_pc_mux_o <= 1'b0;
-                        if_pc_o <= exe_pc_i;
+                        if_pc_o <= exe_pc_i + 32'h00000004;
                         mem_alu_result_o <= exe_imm_i;
                         
                         exe_branch_en_o <= 1'b0;
