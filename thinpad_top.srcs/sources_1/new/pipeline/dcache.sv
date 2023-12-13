@@ -110,11 +110,12 @@ module dcache #(
                     endcase
 
                     wb_valid_reg[mem_addr_hash_reg] <= 1'b1;
-                    if (mem_data_is_from_load_i) begin
-                        wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                    end else begin
-                        wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                    end
+                    // if (mem_data_is_from_load_i) begin
+                    //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                    // end else begin
+                    //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                    // end
+                    wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
                 end else if (mem_find_addr_reg != mem_wb_addr_i_align_reg) begin // conflict
                     wb_addr_reg[mem_addr_hash_reg] <= mem_wb_addr_i_align_reg;
                     
@@ -162,11 +163,12 @@ module dcache #(
                     endcase
 
                     wb_valid_reg[mem_addr_hash_reg] <= 1'b1;
-                    if (mem_data_is_from_load_i) begin
-                        wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                    end else begin
-                        wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                    end
+                    // if (mem_data_is_from_load_i) begin
+                    //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                    // end else begin
+                    //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                    // end
+                    wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
                 end else begin // means hit, TODO: check data to decide dirty tag (0 if same)
                     wb_addr_reg[mem_addr_hash_reg] <= mem_wb_addr_i_align_reg;
                     
@@ -179,11 +181,11 @@ module dcache #(
                                 mem_find_sel_reg[3:1], 1'b1
                             };
 
-                            if (mem_find_data_reg[7:0] == mem_wb_data_i[7:0]) begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                            end else begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                            end
+                            // if (mem_find_data_reg[7:0] == mem_wb_data_i[7:0]) begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                            // end else begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                            // end
                         end
                         4'b0010: begin
                             wb_data_reg[mem_addr_hash_reg] <= {
@@ -193,11 +195,11 @@ module dcache #(
                                 mem_find_sel_reg[3:2], 1'b1, mem_find_sel_reg[0]
                             };
 
-                            if (mem_find_data_reg[15:8] == mem_wb_data_i[15:8]) begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                            end else begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                            end
+                            // if (mem_find_data_reg[15:8] == mem_wb_data_i[15:8]) begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                            // end else begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                            // end
                         end
                         4'b0100: begin
                             wb_data_reg[mem_addr_hash_reg] <= {
@@ -207,11 +209,11 @@ module dcache #(
                                 mem_find_sel_reg[3], 1'b1, mem_find_sel_reg[1:0]
                             };
 
-                            if (mem_find_data_reg[23:16] == mem_wb_data_i[23:16]) begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                            end else begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                            end
+                            // if (mem_find_data_reg[23:16] == mem_wb_data_i[23:16]) begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                            // end else begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                            // end
                         end
                         4'b1000: begin
                             wb_data_reg[mem_addr_hash_reg] <= {
@@ -221,30 +223,31 @@ module dcache #(
                                 1'b1, mem_find_sel_reg[2:0]
                             };
 
-                            if (mem_find_data_reg[31:24] == mem_wb_data_i[31:24]) begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                            end else begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                            end
+                            // if (mem_find_data_reg[31:24] == mem_wb_data_i[31:24]) begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                            // end else begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                            // end
                         end
                         4'b1111: begin
                             wb_data_reg[mem_addr_hash_reg] <= mem_wb_data_i;
                             wb_sel_reg[mem_addr_hash_reg] <= 4'b1111;
 
-                            if (mem_find_data_reg == mem_wb_data_i) begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
-                            end else begin
-                                wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
-                            end
+                            // if (mem_find_data_reg == mem_wb_data_i) begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
+                            // end else begin
+                            //     wb_dirty_reg[mem_addr_hash_reg] <= 1'b1;
+                            // end
                         end
                         default: begin
                             wb_data_reg[mem_addr_hash_reg] <= wb_data_reg[mem_addr_hash_reg];
                             wb_sel_reg[mem_addr_hash_reg] <= wb_sel_reg[mem_addr_hash_reg];
-                            wb_dirty_reg[mem_addr_hash_reg] <= wb_dirty_reg[mem_addr_hash_reg];
+                            // wb_dirty_reg[mem_addr_hash_reg] <= wb_dirty_reg[mem_addr_hash_reg];
                         end
                     endcase
 
                     wb_valid_reg[mem_addr_hash_reg] <= 1'b1;
+                    wb_dirty_reg[mem_addr_hash_reg] <= 1'b0;
                 end
             end
         end
