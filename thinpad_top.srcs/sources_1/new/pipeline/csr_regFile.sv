@@ -208,7 +208,7 @@ module csr_regFile (
                     end
                     // point to next instr
                     if (exc_code_i == `EBREAK || exc_code_i == `ECALL_U) begin
-                        mepc <= exc_pc_i + 4;
+                        mepc <= exc_pc_i;
                     end else begin
                         mepc <= exc_pc_i;
                     end

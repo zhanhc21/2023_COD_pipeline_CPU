@@ -98,13 +98,13 @@ module ICache #(
                 if (wb_ack_i) begin
                     if (
                         (wb_data_i[6:0] == 7'b0110011 && wb_data_i[14:12] == 3'b100) // R xor
-                      || (wb_data_i[6:0] == 7'b0010011 && (wb_data_i[14:12] == 3'b000 || wb_data_i[14:12] == 3'b110)) // addi 
+                      || (wb_data_i[6:0] == 7'b0010011 && (wb_data_i[14:12] == 3'b000 || wb_data_i[14:12] == 3'b110)) && wb_data_i != 32'h13 // addi 
                       || wb_data_i[6:0] == 7'b1100011 || wb_data_i[6:0] == 7'b1101111 || wb_data_i[6:0] == 7'b1100111 // beq
                     )
                     begin
-                        cache_regs[cache_addr_i[7:2]].valid <= 1'b1;
-                        cache_regs[cache_addr_i[7:2]].tag <= cache_addr_i[31:8];
-                        cache_regs[cache_addr_i[7:2]].data <= wb_data_i;
+                        cache_regs[wb_addr_o[7:2]].valid <= 1'b1;
+                        cache_regs[wb_addr_o[7:2]].tag <= wb_addr_o[31:8];
+                        cache_regs[wb_addr_o[7:2]].data <= wb_data_i;
                     end
                     wb_cyc_o <= 1'b0;
                     wb_stb_o <= 1'b0;

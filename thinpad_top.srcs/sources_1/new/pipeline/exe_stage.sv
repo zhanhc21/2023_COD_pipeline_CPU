@@ -256,13 +256,16 @@ module EXE_Stage (
         end else begin
             if (stall_i == 1'b0 && (exe_pc_i == if_pc_o || exe_pc_i == 32'h0 || if_pc_o == 32'h0) &&
             (mem_pc_o != exe_pc_i || mem_instr_o != exe_instr_i)) begin
-                if (exe_pc_i == 32'h800005a0) begin
+                if (exe_pc_i == 32'h800010b8) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h800010b0) begin
+                if (exe_pc_i == 32'h800002d0) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h800010ac) begin
+                if (exe_pc_i == 32'h80000024) begin
+                    mem_pc_o <= exe_pc_i;
+                end
+                if (exe_pc_i == 32'h8000038c) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 mem_pc_o         <= exe_pc_i;
@@ -471,6 +474,13 @@ module EXE_Stage (
                         exe_branch_mispred_o <= 1'b0;   
                     end
                     ECALL: begin
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= 32'h0;
+                        
+                        exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;   
+                    end
+                    EBREAK: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= 32'h0;
                         
