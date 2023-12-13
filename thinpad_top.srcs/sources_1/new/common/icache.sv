@@ -98,7 +98,7 @@ module ICache #(
                 if (wb_ack_i) begin
                     if (
                         (wb_data_i[6:0] == 7'b0110011 && wb_data_i[14:12] == 3'b100) // R xor
-                      || (wb_data_i[6:0] == 7'b0010011 && (wb_data_i[14:12] == 3'b000 || wb_data_i[14:12] == 3'b110)) && wb_data_i != 32'h13 // addi 
+                      || (wb_data_i[6:0] == 7'b0010011 && (wb_data_i[14:12] == 3'b000 || wb_data_i[14:12] == 3'b110) && wb_data_i != 32'h13) // addi 
                       || wb_data_i[6:0] == 7'b1100011 || wb_data_i[6:0] == 7'b1101111 || wb_data_i[6:0] == 7'b1100111 // beq
                     )
                     begin
