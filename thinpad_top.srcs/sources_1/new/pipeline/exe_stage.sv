@@ -262,10 +262,10 @@ module EXE_Stage (
                 if (exe_pc_i == 32'h800002d0) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h80000024) begin
+                if (exe_pc_i == 32'h800002ec) begin
                     mem_pc_o <= exe_pc_i;
                 end
-                if (exe_pc_i == 32'h8000038c) begin
+                if (exe_pc_i == 32'h800005bc) begin
                     mem_pc_o <= exe_pc_i;
                 end
                 mem_pc_o         <= exe_pc_i;
