@@ -12,15 +12,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="29480833fs"></ZoomStartTime>
-      <ZoomEndTime time="30164834fs"></ZoomEndTime>
-      <Cursor1Time time="30050000fs"></Cursor1Time>
+      <ZoomStartTime time="4565474850fs"></ZoomStartTime>
+      <ZoomEndTime time="4566430230fs"></ZoomEndTime>
+      <Cursor1Time time="4566271000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="134"></NameColumnWidth>
-      <ValueColumnWidth column_width="170"></ValueColumnWidth>
+      <ValueColumnWidth column_width="165"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="15" />
+   <WVObjectSize size="21" />
    <wvobject fp_name="/tb/clk_50M" type="logic">
       <obj_property name="ElementShortName">clk_50M</obj_property>
       <obj_property name="ObjectShortName">clk_50M</obj_property>
@@ -80,5 +80,29 @@
    <wvobject fp_name="/tb/dut/u_csr_time/mtimecmp" type="array">
       <obj_property name="ElementShortName">mtimecmp[63:0]</obj_property>
       <obj_property name="ObjectShortName">mtimecmp[63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb/dut/u_cpu_master/u_csr_regFile/mie_mtie" type="logic">
+      <obj_property name="ElementShortName">mie_mtie</obj_property>
+      <obj_property name="ObjectShortName">mie_mtie</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb/dut/u_cpu_master/u_csr_regFile/mip_mtip" type="logic">
+      <obj_property name="ElementShortName">mip_mtip</obj_property>
+      <obj_property name="ObjectShortName">mip_mtip</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb/dut/wb_mux/wbm_adr_i" type="array">
+      <obj_property name="ElementShortName">wbm_adr_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">wbm_adr_i[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb/dut/wb_mux/wbm_dat_i" type="array">
+      <obj_property name="ElementShortName">wbm_dat_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">wbm_dat_i[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb/dut/wb_mux/wbm_stb_i" type="logic">
+      <obj_property name="ElementShortName">wbm_stb_i</obj_property>
+      <obj_property name="ObjectShortName">wbm_stb_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb/dut/wb_mux/wbm_ack_o" type="logic">
+      <obj_property name="ElementShortName">wbm_ack_o</obj_property>
+      <obj_property name="ObjectShortName">wbm_ack_o</obj_property>
    </wvobject>
 </wave_config>
