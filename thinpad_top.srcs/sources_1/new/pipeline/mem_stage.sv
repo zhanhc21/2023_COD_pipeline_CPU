@@ -1,3 +1,5 @@
+`include "../include/csr.vh"
+
 module MEM_Stage (
     input wire clk_i,
     input wire rst_i,
@@ -20,8 +22,20 @@ module MEM_Stage (
     input wire        mem_mem_en_i,
     input wire        mem_mem_wen_i,     // if write DM (0: read DM, 1: write DM)
     input wire [31:0] mem_alu_result_i,
-    input wire [4:0] mem_rf_waddr_i,
+    input wire [4:0]  mem_rf_waddr_i,
     input wire        mem_rf_wen_i,
+    
+    input wire        mem_exc_en_i,
+    input wire [30:0] mem_exc_code_i,
+    input wire [31:0] mem_exc_pc_i,
+    
+    // 上一条指令可能对csr进行写操作，等到exe阶段写完
+    output reg        exc_en_o,
+    output reg [30:0] exc_code_o,
+    output reg [31:0] exc_pc_o,
+
+    // time interrupt signal from csr
+    input wire        time_en_i,
 
     // stall signal and flush signal
     output reg mem_finish_o,
@@ -77,7 +91,13 @@ module MEM_Stage (
         ANDN  = 19,
         SBSET = 20,
         MINU  = 21,
-        NOP   = 22
+        NOP   = 22,
+        CSRRC = 23,
+        CSRRS = 24,
+        CSRRW = 25,
+        ECALL = 26,
+        EBREAK= 27,
+        MRET  = 28
     } op_type;
     op_type instr_type, past_instr_type;
 
@@ -176,6 +196,26 @@ module MEM_Stage (
                     instr_type = SB;
                 else // (mem_instr_i[14:12] == 3'b010)
                     instr_type = SW; 
+            end
+            7'b1110011: begin
+                case (mem_instr_i[14:12])
+                    3'b011: instr_type = CSRRC;
+                    3'b010: instr_type = CSRRS;
+                    3'b001: instr_type = CSRRW;
+                    default: begin
+                        case (mem_instr_i[31:20])
+                            12'b000000000001: begin
+                                instr_type = EBREAK;
+                            end
+                            12'b000000000000: begin
+                                instr_type = ECALL;
+                            end
+                            default: begin
+                                instr_type = MRET;
+                            end
+                        endcase
+                    end
+                endcase
             end
             default: instr_type = NOP;
         endcase
@@ -282,16 +322,19 @@ module MEM_Stage (
             wb_we_o     <= 1'b0;
             wb_sel_o    <= 4'b0;
             wb_rf_wen_o <= 1'b0;
-            wb_pc_o <= 32'h0;
-            wb_instr_o <= 32'h0;
+            wb_pc_o     <= 32'h0;
+            wb_instr_o  <= 32'h0;
             wb_rf_waddr_o <= 5'b0;
             wb_rf_wdata_o <= 32'h0;
             wb_rf_wen_o <= 1'b0;
-            wb_addr_o <= 32'h0;
-            wb_data_o <= 32'h0;
+            wb_addr_o   <= 32'h0;
+            wb_data_o   <= 32'h0;
             busy_o      <= 1'b0;
 
             state <= STATE_IDLE;
+            exc_en_o    <= 1'b0;
+            exc_pc_o    <= 32'b0;
+            exc_code_o  <= 31'b0;
         end else begin
             if (mem_pc_i == 32'h80001710) begin
                 state <= state;
@@ -542,6 +585,7 @@ module MEM_Stage (
                 end
                 
                 // wirte or read ram finish
+                // wirte or read ram finished
                 if (mem_finish) begin
                     wb_cyc_o  <= 1'b0;
                     wb_stb_o  <= 1'b0;
@@ -568,9 +612,15 @@ module MEM_Stage (
                 wb_instr_o <= mem_instr_i;
                 wb_rf_waddr_o <= mem_rf_waddr_i;
                 wb_rf_wen_o <= mem_rf_wen_i;
-
+                
                 state <= STATE_IDLE;
             end
+            exc_en_o   <= mem_exc_en_i;
+            if (time_en_i)
+                exc_pc_o <= mem_pc_i;
+            else
+                exc_pc_o <= mem_exc_pc_i;
+            exc_code_o <= mem_exc_code_i;
         end
     end
 endmodule

@@ -20,9 +20,12 @@ module pipeline #(
     input wire wbm_ack_dm,
     output reg [ADDR_WIDTH-1:0] wbm_addr_dm,
     output reg [DATA_WIDTH-1:0] wbm_data_o_dm,
-    input reg [DATA_WIDTH-1:0] wbm_data_i_dm,
+    input reg  [DATA_WIDTH-1:0] wbm_data_i_dm,
     output reg [DATA_WIDTH/8-1:0] wbm_sel_dm,
     output reg wbm_we_dm,
+
+    // csr time signal
+    input wire timeout_signal,
     // ICache
     output reg fence_i_o
 );
@@ -54,9 +57,44 @@ module pipeline #(
     logic [11:0] csr_waddr_o;
     logic        csr_wen_o;
 
-    logic ebreak_signal;
-    logic ecall_signal;
-    logic mret_singal;
+    logic        trap_en_signal;
+    logic        trap_type_signal;    // 1 interrupt  0 exception
+    logic [30:0] trap_code_signal;
+    logic [31:0] trap_val_signal;
+    logic [31:0] trap_pc_signal;
+ 
+    // exception
+    logic        exc_en_signal;
+    logic [30:0] exc_code_signal;
+    logic [31:0] exc_pc_signal;
+    logic [31:0] exc_val_signal;
+
+    logic        mret_singal;
+
+    logic        exc_occur_signal;
+    logic        ret_occur_signal;
+    logic [31:0] csr_if_pc;  // mtvec异常处理程序地址 / pc recovered as mret
+
+    logic        time_interrupt_occur;  // serve as signal to get pc as time interrupt occuring from mem stage
+
+    csr_regFile u_csr_regFile (
+        .clk_i(clk_i),
+        .rst_i(rst_i),
+        .csr_raddr_i(csr_raddr_o),
+        .csr_rdata_o(csr_rdata_i),
+        .csr_waddr_i(csr_waddr_o),
+        .csr_wdata_i(csr_wdata_o),
+        .csr_wen_i(csr_wen_o),
+        .mret_i(mret_singal),
+        .exc_en_i(exc_en_signal),
+        .exc_code_i(exc_code_signal),
+        .exc_pc_i(exc_pc_signal),
+        .timer_i(timeout_signal),
+        .timer_o(time_interrupt_occur),
+        .csr_pc_o(csr_if_pc),
+        .pc_mux_ret_o(ret_occur_signal),
+        .pc_mux_exc_o(exc_occur_signal)
+    );
 
     // IF signals
     logic [31:0] if_id_pc;
@@ -65,20 +103,23 @@ module pipeline #(
     // ID signals
     logic [31:0] id_exe_pc;
     logic [31:0] id_exe_instr;
-    logic [4:0] id_exe_rf_raddr_a;
-    logic [4:0] id_exe_rf_raddr_b;
+    logic [ 4:0] id_exe_rf_raddr_a;
+    logic [ 4:0] id_exe_rf_raddr_b;
     logic [31:0] id_exe_rf_rdata_a;
     logic [31:0] id_exe_rf_rdata_b;
     logic [31:0] id_exe_imm;
     logic        id_exe_mem_en;
     logic        id_exe_mem_wen;
-    logic [3:0] id_exe_alu_op;
+    logic [ 3:0] id_exe_alu_op;
     logic        id_exe_alu_a_mux;
     logic        id_exe_alu_b_mux;
-    logic [4:0] id_exe_rf_waddr;
+    logic [ 4:0] id_exe_rf_waddr;
     logic        id_exe_rf_wen;
     logic [11:0] id_exe_csr_waddr;
     logic        id_exe_csr_wen;
+    logic        id_exe_exc_en;
+    logic [31:0] id_exe_exc_pc;
+    logic [30:0] id_exe_exc_code;
 
     // EXE signals
     logic [31:0] exe_mem_pc;
@@ -87,14 +128,17 @@ module pipeline #(
     logic        exe_mem_mem_en;
     logic        exe_mem_mem_wen;
     logic [31:0] exe_mem_alu_result;
-    logic [4:0] exe_mem_rf_waddr;
+    logic [ 4:0] exe_mem_rf_waddr;
     logic        exe_mem_rf_wen;
+    logic        exe_mem_exc_en;
+    logic [30:0] exe_mem_exc_code;
+    logic [31:0] exe_mem_exc_pc;
     logic [31:0] exe_if_pc;
     logic        exe_if_pc_mux;
     logic [31:0] alu_result;
     logic [31:0] alu_operand_a;
     logic [31:0] alu_operand_b;
-    logic [3:0] alu_op;
+    logic [ 3:0] alu_op;
 
     alu u_alu (
         .a  (alu_operand_a),
@@ -107,7 +151,7 @@ module pipeline #(
     logic [31:0] mem_wb_pc;
     logic [31:0] mem_wb_instr;
     logic [31:0] mem_wb_rf_wdata;
-    logic [4:0] mem_wb_rf_waddr;
+    logic [4:0]  mem_wb_rf_waddr;
     logic        mem_wb_rf_wen;
 
     // pipeline controller signals
@@ -136,6 +180,7 @@ module pipeline #(
     logic [31:0] rf_wdata_controller;
     logic rf_wen_controller;
 
+    logic [31:0] exe_mem_instr_i;
     // BTB signal
     logic [31:0] exe_branch_src_pc_i;
     logic [31:0] exe_branch_tgt_pc_i;
@@ -214,6 +259,9 @@ module pipeline #(
         // pc mux signals
         .pc_from_exe_i(exe_if_pc),
         .pc_mux_i(exe_if_pc_mux), // 0: pc+4, 1: exe_pc
+        .pc_from_csr_i(csr_if_pc),
+        .pc_mux_ret_i(ret_occur_signal),
+        .pc_mux_exc_i(exc_occur_signal),
         
         // wishbone signals
         .wb_cyc_o(wbm_cyc_im),
@@ -263,8 +311,6 @@ module pipeline #(
 
         // signal to controller
         .exe_first_time_o(exe_first_time),
-        .ebreak_o(ebreak_signal),
-        .ecall_o(ecall_signal),
         .mret_o(mret_singal),
 
         // signals to EXE stage
@@ -283,7 +329,10 @@ module pipeline #(
         .exe_rf_waddr_o(id_exe_rf_waddr),
         .exe_rf_wen_o(id_exe_rf_wen),
         .exe_csr_waddr_o(id_exe_csr_waddr),
-        .exe_csr_wen_o(id_exe_csr_wen)
+        .exe_csr_wen_o(id_exe_csr_wen),
+        .exe_exc_en_o(id_exe_exc_en),
+        .exe_exc_code_o(id_exe_exc_code),
+        .exe_exc_pc_o(id_exe_exc_pc)
     );
 
     /* ========== EXE stage ========== */
@@ -308,6 +357,9 @@ module pipeline #(
         .exe_rf_wen_i(id_exe_rf_wen),
         .exe_csr_waddr_i(id_exe_csr_waddr),
         .exe_csr_wen_i(id_exe_csr_wen),
+        .exe_exc_en_i(id_exe_exc_en),
+        .exe_exc_code_i(id_exe_exc_code),
+        .exe_exc_pc_i(id_exe_exc_pc),
 
         // stall signal and flush signal
         .stall_i(exe_stall),
@@ -332,6 +384,9 @@ module pipeline #(
         .mem_mem_wen_o(exe_mem_mem_wen), // if write DM (0: read DM, 1: write DM)
         .mem_rf_waddr_o(exe_mem_rf_waddr), // WB addr
         .mem_rf_wen_o(exe_mem_rf_wen),  // if write back (WB)
+        .mem_exc_en_o(exe_mem_exc_en),
+        .mem_exc_code_o(exe_mem_exc_code),
+        .mem_exc_pc_o(exe_mem_exc_pc),
 
         // signals to alu
         .alu_result_i (alu_result),
@@ -339,7 +394,7 @@ module pipeline #(
         .alu_operand_b_o (alu_operand_b),
         .alu_op_o (alu_op),
 
-        // signals to 
+        // signals to csr
         .csr_wen_o(csr_wen_o),
         .csr_wdata_o(csr_wdata_o),
         .csr_waddr_o(csr_waddr_o),
@@ -377,6 +432,17 @@ module pipeline #(
         .mem_alu_result_i(exe_mem_alu_result),
         .mem_rf_waddr_i(exe_mem_rf_waddr),
         .mem_rf_wen_i(exe_mem_rf_wen),
+        .mem_exc_en_i(exe_mem_exc_en),
+        .mem_exc_code_i(exe_mem_exc_code),
+        .mem_exc_pc_i(exe_mem_exc_pc),
+
+        // 上一条指令可能对csr进行写操作，等到exe阶段写完
+        .exc_en_o(exc_en_signal),
+        .exc_code_o(exc_code_signal),
+        .exc_pc_o(exc_pc_signal),
+
+        // time interrupt signal from csr
+        .time_en_i(timeout_signal),
 
         // stall signal and flush signal
         .mem_finish_o(mem_finish),
@@ -458,12 +524,17 @@ module pipeline #(
         .mem_rf_wen_i(exe_mem_rf_wen),
         .mem_mem_en_i(exe_mem_mem_en),
         .mem_mem_wen_i(exe_mem_mem_wen),
+        .exe_mem_instr_i(exe_mem_instr),
 
         // signals from MEM/WB pipeline registers
         .wb_rf_wdata_i(mem_wb_rf_wdata),
         .wb_rf_waddr_i(mem_wb_rf_waddr),
         .wb_rf_wen_i(mem_wb_rf_wen),
         .exe_if_pc_mux_i(exe_if_pc_mux),
+
+        // signals from csr registers
+        .csr_pc_mux_ret_i(ret_occur_signal),
+        .csr_pc_mux_exc_i(exc_occur_signal),
 
         // signals from WB
         .rf_wdata_controller_i(rf_wdata_controller),
@@ -491,11 +562,6 @@ module pipeline #(
         .exe_forward_alu_a_o(exe_forward_alu_a),
         .exe_forward_alu_b_o(exe_forward_alu_b),
         .exe_forward_alu_a_mux_o(exe_forward_alu_a_mux),
-        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux),
-
-        // exception signals
-        .ebreak_i(ebreak_signal),
-        .ecall_i(ecall_signal),
-        .mret_i(mret_singal)
+        .exe_forward_alu_b_mux_o(exe_forward_alu_b_mux)
     );
 endmodule

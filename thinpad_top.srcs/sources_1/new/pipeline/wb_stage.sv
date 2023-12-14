@@ -6,7 +6,7 @@ module WB_Stage (
     input wire [31:0] wb_pc_i,
     input wire [31:0] wb_instr_i,
     input wire [31:0] wb_rf_wdata_i,
-    input wire [4:0] wb_rf_waddr_i,
+    input wire [4:0]  wb_rf_waddr_i,
     input wire        wb_rf_wen_i,
 
     // stall signal and flush signal
@@ -15,12 +15,12 @@ module WB_Stage (
 
     // signals to regfile
     output reg [31:0] rf_wdata_o,
-    output reg [4:0] rf_waddr_o,
+    output reg [ 4:0] rf_waddr_o,
     output reg        rf_wen_o,
 
     // signals to controller
     output reg [31:0] rf_wdata_controller_o,
-    output reg [4:0] rf_waddr_controller_o,
+    output reg [ 4:0] rf_waddr_controller_o,
     output reg        rf_wen_controller_o
 );
     // TODO: stall signal and flush signal

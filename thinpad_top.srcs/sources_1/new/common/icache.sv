@@ -38,7 +38,7 @@ module ICache #(
 
     cache_table_t record;
     reg cache_ack_reg;
-    reg [DATA_WIDTH-1:0] cache_data_reg;
+    reg [DATA_WIDTH-1:0] cache_addr_reg;
 
     reg cache_hit;
     assign cache_hit = cache_regs[cache_addr_i[7:2]].valid == 1 && cache_regs[cache_addr_i[7:2]].tag == cache_addr_i[31:8];
@@ -77,7 +77,7 @@ module ICache #(
     always_ff @ (posedge clk_i) begin
         if (rst_i) begin
             cache_ack_reg <= 1'b0;
-            cache_data_reg <= 32'h0;
+            cache_addr_reg <= 32'h0;
             state <= STATE_IDLE;
             for (i=0; i<64; i++)
                 cache_regs[i] <= 55'd0;
@@ -90,22 +90,30 @@ module ICache #(
                     wb_cyc_o <= 1'b1;
                     wb_stb_o <= 1'b1;
                     wb_addr_o <= cache_addr_i;
+                    cache_addr_reg <= cache_addr_i;
                     wb_sel_o <= 4'b1111;
                     wb_we_o <= 1'b0;
                     state <= STATE_READ;
+                end else begin
+                    wb_cyc_o <= 1'b0;
+                    wb_stb_o <= 1'b0;
                 end
             end else begin
-                if (wb_ack_i) begin
-                    if (
+                if (wb_ack_i & (wb_addr_o == cache_addr_i)) begin
+                    if ((
                         (wb_data_i[6:0] == 7'b0110011 && wb_data_i[14:12] == 3'b100) // R xor
                       || (wb_data_i[6:0] == 7'b0010011 && (wb_data_i[14:12] == 3'b000 || wb_data_i[14:12] == 3'b110)) // addi 
                       || wb_data_i[6:0] == 7'b1100011 || wb_data_i[6:0] == 7'b1101111 || wb_data_i[6:0] == 7'b1100111 // beq
-                    )
+                    ))
                     begin
-                        cache_regs[cache_addr_i[7:2]].valid <= 1'b1;
-                        cache_regs[cache_addr_i[7:2]].tag <= cache_addr_i[31:8];
-                        cache_regs[cache_addr_i[7:2]].data <= wb_data_i;
+                        cache_regs[cache_addr_reg[7:2]].valid <= 1'b1;
+                        cache_regs[cache_addr_reg[7:2]].tag <= cache_addr_reg[31:8];
+                        cache_regs[cache_addr_reg[7:2]].data <= wb_data_i;
                     end
+                    wb_cyc_o <= 1'b0;
+                    wb_stb_o <= 1'b0;
+                    state <= STATE_IDLE;
+                end else if (wb_ack_i) begin
                     wb_cyc_o <= 1'b0;
                     wb_stb_o <= 1'b0;
                     state <= STATE_IDLE;

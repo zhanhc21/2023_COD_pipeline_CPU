@@ -48,7 +48,7 @@ module vga_controller #(
     output wire data_enable_o
 );
     reg [14:0] hdata, vdata;
-    reg [10:0] addr;
+    reg [11:0] addr;
     reg [31:0] dout;
     reg [7:0] data;
 
