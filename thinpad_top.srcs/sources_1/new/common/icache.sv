@@ -47,7 +47,7 @@ module ICache #(
     always_comb begin
         if (cache_hit) begin
             hit_data = cache_regs[cache_addr_i[7:2]].data;
-        end else if (wb_ack_i && wb_addr_o == cache_addr_i) begin
+        end else if (wb_ack_i) begin
             hit_data = wb_data_i;
         end else begin
             hit_data = 32'h0;
@@ -102,9 +102,9 @@ module ICache #(
                       || wb_data_i[6:0] == 7'b1100011 || wb_data_i[6:0] == 7'b1101111 || wb_data_i[6:0] == 7'b1100111 // beq
                     ))
                     begin
-                        cache_regs[cache_addr_i[7:2]].valid <= 1'b1;
-                        cache_regs[cache_addr_i[7:2]].tag <= cache_addr_i[31:8];
-                        cache_regs[cache_addr_i[7:2]].data <= wb_data_i;
+                        cache_regs[wb_addr_o[7:2]].valid <= 1'b1;
+                        cache_regs[wb_addr_o[7:2]].tag <= wb_addr_o[31:8];
+                        cache_regs[wb_addr_o[7:2]].data <= wb_data_i;
                     end
                     wb_cyc_o <= 1'b0;
                     wb_stb_o <= 1'b0;
