@@ -216,7 +216,7 @@ module csr_regFile (
                     // time interrupt process
                     mcause_interrupt <= `INTERRUPT;
                     mcause_exc_code  <= `MACHINE_TIMER_INTERRUPT;
-                    mie_mtie         <= 1'b1;
+                    mie_mtie         <= 1'b0;
                     mepc             <= exc_pc_i;
                     mstatus_mpie     <= mstatus_mie;
                     mstatus_mie      <= 1'b0;
@@ -226,7 +226,7 @@ module csr_regFile (
                     mstatus_mie  <= mstatus_mpie;
                     mstatus_mpie <= 1'b1;
                     mip_mtip     <= 1'b0;
-                    mie_mtie     <= 1'b0;
+                    mie_mtie     <= 1'b1;
                 end
             end
         end
