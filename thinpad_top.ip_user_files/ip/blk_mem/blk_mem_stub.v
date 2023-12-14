@@ -1,7 +1,7 @@
 // Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2019.2 (win64) Build 2708876 Wed Nov  6 21:40:23 MST 2019
-// Date        : Thu Dec 14 16:46:43 2023
+// Date        : Thu Dec 14 19:16:58 2023
 // Host        : LAPTOP-EI1DC3AS running 64-bit major release  (build 9200)
 // Command     : write_verilog -force -mode synth_stub
 //               c:/Users/24050/Desktop/cod-master/cod23-grp26/thinpad_top.srcs/sources_1/ip/blk_mem_1/blk_mem_stub.v

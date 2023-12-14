@@ -69,7 +69,7 @@ module csr_time (
                         wb_ack_o <= 1'b1;
                         state <= DONE;
                     end else
-                        mtime <= mtime + 32'h100;
+                        mtime <= mtime + 32'h1;
                 end
                 DONE: begin
                     wb_ack_o <= 1'b0;
