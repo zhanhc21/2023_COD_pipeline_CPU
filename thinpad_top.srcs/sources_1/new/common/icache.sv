@@ -96,7 +96,7 @@ module ICache #(
                     state <= STATE_READ;
                 end
             end else begin
-                if (wb_ack_i) begin
+                if (wb_ack_i & (wb_addr_o == cache_addr_i)) begin
                     if ((
                         (wb_data_i[6:0] == 7'b0110011 && wb_data_i[14:12] == 3'b100) // R xor
                       || (wb_data_i[6:0] == 7'b0010011 && (wb_data_i[14:12] == 3'b000 || wb_data_i[14:12] == 3'b110)) // addi 
@@ -110,7 +110,8 @@ module ICache #(
                     wb_cyc_o <= 1'b0;
                     wb_stb_o <= 1'b0;
                     state <= STATE_IDLE;
-                end
+                end else 
+                    state <= STATE_IDLE;
             end
         end
     end
