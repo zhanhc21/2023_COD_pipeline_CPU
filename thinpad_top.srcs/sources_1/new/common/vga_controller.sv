@@ -56,7 +56,7 @@ module vga_controller #(
         .clka(clk_i), 
         .ena(wb_we_i), 
         .wea(wb_we_i),
-        .addra(wb_addr_i[10:0]),      // input wire [10:0] addra
+        .addra(wb_addr_i[11:0]),      // input wire [10:0] addra
         .dina(wb_data_i),        // input wire [31:0] dina
 
         .clkb(clk_i),
