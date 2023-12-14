@@ -606,14 +606,17 @@ module thinpad_top (
 
     flash_controller u_flash_controller (
         .clk_i        (sys_clk),
-        .rst_i        (sys_clk),
+        .rst_i        (sys_rst),
+
         .wb_cyc_i     (wbs4_cyc_o),
         .wb_stb_i     (wbs4_stb_o),
         .wb_ack_o     (wbs4_ack_i),
-        .wb_addr_i     (wbs4_adr_o),
-        .wb_data_i     (wbs4_dat_o),
+        .wb_addr_i    (wbs4_adr_o),
+        .wb_data_i    (wbs4_dat_o),
+        .wb_data_o    (wbs4_dat_i),
         .wb_sel_i     (wbs4_sel_o),
         .wb_we_i      (wbs4_we_o),
+
         .flash_addr_o (flash_a),
         .flash_data (flash_d),
         .flash_rp_n_o (flash_rp_n),

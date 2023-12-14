@@ -46,21 +46,21 @@ module flash_controller #(
     assign flash_addr_o = flash_addr_reg;
     assign flash_ce_n_o = flash_ce_n_o_reg;
     assign flash_oe_n_o = flash_oe_n_o_reg;
+    assign wb_data_o = wb_data_o_reg;
 
     always_comb begin
-        wb_data_o_reg = {flash_data_hi_reg, flash_data_lo_reg};
         if (wb_cyc_i && wb_stb_i && !wb_we_i) begin
-            if (!rst_i) begin
-                flash_ce_n_o_reg = 1'b0;
-                flash_oe_n_o_reg = 1'b0;
-            end else begin
-                flash_ce_n_o_reg = 1'b1;
-                flash_oe_n_o_reg = 1'b1;
-            end
+            flash_ce_n_o_reg = 1'b0;
+            flash_oe_n_o_reg = 1'b0;
         end else begin
             flash_ce_n_o_reg = 1'b1;
             flash_oe_n_o_reg = 1'b1;
         end
+        if (rst_i) begin
+            flash_ce_n_o_reg = 1'b1;
+            flash_oe_n_o_reg = 1'b1;
+        end
+        wb_data_o_reg = {flash_data_hi_reg, flash_data_lo_reg};
     end
 
     assign flash_rp_n_o = 1'b1;
@@ -71,12 +71,18 @@ module flash_controller #(
     typedef enum logic [3:0] {
         STATE_IDLE = 0,
 
-        STATE_READ_LO = 1,
-        STATE_READ_HI = 2,
+        STATE_READ_SETUP = 1,
+        STATE_READ_LO_1 = 2,
+        STATE_READ_LO_2 = 3,
 
-        STATE_DONE = 3
+        STATE_READ_HI_1 = 4,
+        STATE_READ_HI_2 = 5,
+
+        STATE_DONE = 6
     } state_t;
-    state_t state;
+    state_t state = STATE_IDLE;
+
+    reg finish_reg;
 
     always @(posedge clk_i) begin
         if (rst_i) begin
@@ -86,37 +92,71 @@ module flash_controller #(
 
             wb_ack_o <= 1'b0;
             state <= STATE_IDLE;
+
+            finish_reg <= 1'b0;
         end else begin
             case (state)
                 STATE_IDLE: begin
                     wb_ack_o <= 1'b0;
                     if (wb_cyc_i && wb_stb_i) begin
-                        if (wb_we_i) begin
-                            state <= STATE_DONE;
+                        if (!finish_reg) begin
+                            if (wb_we_i) begin
+                                state <= STATE_DONE;
+                            end else begin
+                                flash_data_lo_reg <= 16'b0;
+                                flash_data_hi_reg <= 16'b0;
+                                flash_addr_reg <= {wb_addr_i[22:2], 2'b0};
+                                state <= STATE_READ_SETUP;
+                            end
                         end else begin
-                            flash_data_lo_reg <= 16'b0;
-                            flash_data_hi_reg <= 16'b0;
-                            flash_addr_reg <= wb_addr_i[22:0];
-                            state <= STATE_READ_LO;
+                            flash_data_lo_reg <= flash_data_lo_reg;
+                            flash_data_hi_reg <= flash_data_hi_reg;
+                            state <= STATE_IDLE;
                         end
+                    end else begin
+                        finish_reg <= 1'b0;
+                        flash_data_lo_reg <= flash_data_lo_reg;
+                        flash_data_hi_reg <= flash_data_hi_reg;
+                        state <= STATE_IDLE;
                     end
                 end
 
-                STATE_READ_LO: begin
+                STATE_READ_SETUP: begin
                     wb_ack_o <= 1'b0;
-                    flash_data_lo_reg <= flash_data_i_comb;
-                    flash_addr_reg <= flash_addr_reg + 23'd2;
-                    state <= STATE_READ_HI;
+                    finish_reg <= 1'b0;
+                    state <= STATE_READ_LO_1;
                 end
 
-                STATE_READ_HI: begin
+                STATE_READ_LO_1: begin
                     wb_ack_o <= 1'b0;
+                    finish_reg <= 1'b0;
+                    state <= STATE_READ_LO_2;
+                end
+
+                STATE_READ_LO_2: begin
+                    wb_ack_o <= 1'b0;
+                    finish_reg <= 1'b0;
+                    flash_data_lo_reg <= flash_data_i_comb;
+                    flash_addr_reg <= flash_addr_reg + 23'd2;
+                    state <= STATE_READ_HI_1;
+                end
+
+                STATE_READ_HI_1: begin
+                    wb_ack_o <= 1'b0;
+                    finish_reg <= 1'b0;
+                    state <= STATE_READ_HI_2;
+                end
+
+                STATE_READ_HI_2: begin
+                    wb_ack_o <= 1'b0;
+                    finish_reg <= 1'b0;
                     flash_data_hi_reg <= flash_data_i_comb;
                     state <= STATE_DONE;
                 end
 
                 STATE_DONE: begin
                     wb_ack_o <= 1'b1;
+                    finish_reg <= 1'b1;
                     state <= STATE_IDLE;
                 end
             endcase
