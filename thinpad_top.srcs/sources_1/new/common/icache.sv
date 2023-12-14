@@ -113,8 +113,11 @@ module ICache #(
                     wb_cyc_o <= 1'b0;
                     wb_stb_o <= 1'b0;
                     state <= STATE_IDLE;
-                end else if (wb_ack_i) 
+                end else if (wb_ack_i) begin
+                    wb_cyc_o <= 1'b0;
+                    wb_stb_o <= 1'b0;
                     state <= STATE_IDLE;
+                end
             end
         end
     end
