@@ -391,6 +391,21 @@ module ID_Stage (
                 mem_en_reg = 0;
                 mem_wen_reg = 0;
             end
+            OPCODE_CRAS16: begin
+                inst_type_reg = TYPE_R;
+                alu_op_reg = ALU_CRAS16;
+                alu_a_mux_reg = 0;
+                alu_b_mux_reg = 1;
+                rf_wen_reg = 1;
+                mem_en_reg = 0;
+                mem_wen_reg = 0;
+                csr_wen_reg = 0;
+
+                mret_reg     = 0;
+                exc_en_reg   = 0;
+                exc_pc_reg   = 0;
+                exc_code_reg = `NOP;
+            end
             default: begin
                 inst_type_reg = TYPE_R;
                 alu_op_reg = ALU_DEFAULT;

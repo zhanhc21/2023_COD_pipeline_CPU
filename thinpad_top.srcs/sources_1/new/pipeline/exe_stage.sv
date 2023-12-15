@@ -175,6 +175,9 @@ module EXE_Stage (
                     end
                 endcase
             end
+            7'b1110111: begin
+                instr_type = CRAS16;
+            end
             default: instr_type = NOP;
         endcase
     end
@@ -489,6 +492,14 @@ module EXE_Stage (
                         exe_branch_mispred_o <= 1'b0;   
                     end
                     // add(i),and(i),or(i),auipc,lb,lw,xor,slli,srli,andn,sbset,minu,sltu,ebreak,ecall,mret
+                    CRAS16: begin
+                        mem_alu_result_o <= alu_result_i;
+                        if_pc_mux_o <= 1'b0;
+                        if_pc_o <= exe_pc_i + 32'd4;
+
+                        exe_branch_en_o <= 1'b0;
+                        exe_branch_mispred_o <= 1'b0;
+                    end
                     default: begin
                         if_pc_mux_o <= 1'b0;
                         if_pc_o <= exe_pc_i + 32'd4;

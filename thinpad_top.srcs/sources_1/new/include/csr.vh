@@ -75,7 +75,8 @@ typedef enum logic [4:0] {
     SLTU  = 26,
     EBREAK = 27,
     ECALL = 28,
-    MRET  = 29
+    MRET  = 29,
+    CRAS16 = 30
 } op_type;
 
 
@@ -91,6 +92,7 @@ typedef enum logic [6:0] {
     OPCODE_LUI = 7'b0110111,
     OPCODE_SB_SW = 7'b0100011,
     OPCODE_CSRRC_CSRRS_CSRRW_EBREAK_ECALL_MRET = 7'b1110011,
+    OPCODE_CRAS16 = 7'b1110111,
     OPCODE_ZERO = 7'b0
 } opcode_t;
 
@@ -118,7 +120,8 @@ typedef enum logic [3:0] {
     ALU_ANDN = 4'd11,
     ALU_SBSET = 4'd12,
     ALU_MINU = 4'd13,
-    ALU_SLTU = 4'd14
+    ALU_SLTU = 4'd14,
+    ALU_CRAS16 = 4'd15
 } alu_op_type_t;
 
 `endif
