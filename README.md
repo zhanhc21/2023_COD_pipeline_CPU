@@ -6,4 +6,4 @@
 
 在基础5级流水线的基础上实现了中断异常、icache、decache、分支预测、vga（半成品）、flash
 
-[report](file://文档.md)
+[report](/report.md)
